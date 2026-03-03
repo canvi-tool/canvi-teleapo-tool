@@ -82,9 +82,9 @@ function PdfDropZone({onText,uploaded,setUploaded,fileName,setFileName}){
 
   function processFile(file){
     if(!file||file.type!=="application/pdf")return;
-    setFileName(file.name);
+   setFileName(file.name);
+    setUploaded(true);
     setLoading(true);
-    setUploaded(false);
     var reader=new FileReader();
     reader.onload=function(ev){
       var base64=ev.target.result.split(",")[1];
