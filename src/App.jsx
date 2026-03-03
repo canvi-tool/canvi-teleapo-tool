@@ -315,38 +315,33 @@ export default function CanviTool(){
     return true;
   }
 
-  function buildPrompt(fb){
-    var p=CALL_PATTERNS.find(function(x){return x.id===form.callPattern;});
-    return "あなたはThe Model型テレアポのトップエキスパートです。以下の情報をもとにアポインターが実際に使えるトーク素材を作成してください。\n\n会社名:"+form.companyName+" / サービス名:"+form.serviceName+"\n概要:"+form.serviceOverview+"\nURL:"+(form.serviceUrl||"なし")+" / 既存スクリプト参考:"+(form.talkScript||"なし")+"\n架電パターン:"+(p?p.label:"")+"("+(p?p.desc:"")+")"+"\n業界:"+form.industries.join("、")+" / 従業員数:"+(form.employeeRange.join("、")||"指定なし")+"\n担当部署:"+(form.departments.join("、")||"指定なし")+" / エリア:"+form.area+" / 役職:"+(form.contactRole||"指定なし")+"\n目標:"+(form.goal||"アポイント獲得")+" / 訴求:"+form.appealPoints+"\n差別化:"+(form.differentiation||"なし")+" / 競合:"+(form.competitors||"なし")+"\n受付断り:"+(form.rcptObjections||"なし")+" / 担当者断り:"+(form.contactObjections||"なし")+"\nその他:"+(form.situationNotes||"なし")+"\n"+(fb?"修正指示:"+fb:"")+"\n\n【重要】出力はJSON形式のみ。Markdownのコードブロック(```)は絶対に使わない。前置き・後書き不要。文字列内の改行は\\nで表現すること。\n\ntalkScript構成:\n■ PART1 受付突破（ナチュラル型）\nSTEP A: 最初の一言（具体セリフ＋💡ポイント）\nSTEP B: 受付の返答パターン別3〜5パターン（各:❌パターン名→具体セリフ→💡ポイント）\n🏆 ゴールデンルール（箇条書き）\n■ PART2 担当者トーク\nSTEP 02 [HOOK] / STEP 03 [PAIN] / STEP 04 [VALUE] / STEP 05 [CLOSE] / STEP 06 [CONFIRM]（各STEP: 具体的セリフ＋💡ポイント）\n\nobjectionHandling構成:受付用5個＋担当者用5個、計10個。各: ❌「断り文句」の見出し＋1.共感→セリフ 2.転換→セリフ 3.クロージング→セリフ\n\nfaq構成: Q1〜Q10の10個\n\n必ず以下の形式で出力:{\"talkScript\":\"...\",\"objectionHandling\":\"...\",\"faq\":\"...\"}";
-  }
+  function buildPrompt(type, fb){
+  var p=CALL_PATTERNS.find(function(x){return x.id===form.callPattern;});
+  var base="会社名:"+form.companyName+" / サービス名:"+form.serviceName+"\n概要:"+form.serviceOverview+"\n架電パターン:"+(p?p.label:"")+"\n業界:"+form.industries.join("、")+" / エリア:"+form.area+"\n訴求:"+form.appealPoints+"\n受付断り:"+(form.rcptObjections||"なし")+" / 担当者断り:"+(form.contactObjections||"なし")+"\n"+(fb?"修正指示:"+fb:"");
+  if(type==="script")return "あなたはテレアポのトップエキスパートです。\n\n"+base+"\n\n以下の構成でトークスクリプトを作成してください。JSONや```は使わず、プレーンテキストで出力してください。\n\n■ PART1 受付突破（ナチュラル型）\nSTEP A: 最初の一言\n具体セリフ：「...」\n💡 ポイント：...\n\nSTEP B: 受付パターン別対応\n❌ パターン①「...」\n→ セリフ：「...」\n💡 ポイント：...\n（3〜5パターン）\n\n🏆 ゴールデンルール\n・...\n\n■ PART2 担当者トーク\nSTEP 02 [HOOK] 興味喚起\nセリフ：「...」\n💡 ポイント：...\n\nSTEP 03 [PAIN] 課題深掘り\nSTEP 04 [VALUE] 価値提供\nSTEP 05 [CLOSE] アポ打診\nSTEP 06 [CONFIRM] 確認";
+  if(type==="objection")return "あなたはテレアポのトップエキスパートです。\n\n"+base+"\n\n以下の形式で切り返しトークを10個作成してください。JSONや```は使わず、プレーンテキストで出力してください。\n\n受付用5個、担当者用5個。\n\n各パターンの形式:\n❌「断り文句」\n1. 共感：「...」\n2. 転換：「...」\n3. クロージング：「...」";
+  if(type==="faq")return "あなたはテレアポのトップエキスパートです。\n\n"+base+"\n\n以下の形式でFAQを10個作成してください。JSONや```は使わず、プレーンテキストで出力してください。\n\nQ1. ...\nA1. ...\n\nQ2. ...\nA2. ...\n（Q10まで）";
+}
 
-  function generate(fb){
-    setLoading(true);
-    fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-opus-4-5",max_tokens:4000,messages:[{role:"user",content:buildPrompt(fb)}]})})
-    .then(function(res){return res.json();}).then(function(data){
-      var text=data.content?data.content.map(function(c){return c.text||"";}).join(""):"";
-      var parsed;
-      try{
-        var clean=text.replace(/^```json\s*/,"").replace(/^```\s*/,"").replace(/```\s*$/,"").trim();
-        parsed=JSON.parse(clean);
-      }catch(e){
-        try{
-          var start=text.indexOf("{");
-          var end=text.lastIndexOf("}");
-          if(start!==-1&&end!==-1){parsed=JSON.parse(text.slice(start,end+1));}
-          else{throw new Error("no json");}
-        }catch(e2){
-          parsed={talkScript:text,objectionHandling:"",faq:""};
-        }
-      }
-      var ver={id:Date.now(),timestamp:new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}),data:parsed};
-      setVersions(function(v){return [...v,ver];});
-      setCurrentId(ver.id);setOutput(parsed);setFeedback("");setLoading(false);
-      if(user){
-        addDoc(collection(db,"generations"),{uid:user.uid,email:user.email,companyName:form.companyName,serviceName:form.serviceName,callPattern:form.callPattern,output:parsed,createdAt:serverTimestamp()}).catch(function(){});
-      }
-    }).catch(function(){alert("生成に失敗しました。APIキーを確認してください。");setLoading(false);});
-  }
+function generate(fb){
+  setLoading(true);
+  var types=["script","objection","faq"];
+  var results={};
+  var calls=types.map(function(type){
+    return fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-opus-4-5",max_tokens:3000,messages:[{role:"user",content:buildPrompt(type,fb)}]})})
+    .then(function(res){return res.json();})
+    .then(function(data){
+      results[type]=data.content?data.content.map(function(c){return c.text||"";}).join(""):"";
+    });
+  });
+  Promise.all(calls).then(function(){
+    var parsed={talkScript:results["script"]||"",objectionHandling:results["objection"]||"",faq:results["faq"]||""};
+    var ver={id:Date.now(),timestamp:new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}),data:parsed};
+    setVersions(function(v){return [...v,ver];});
+    setCurrentId(ver.id);setOutput(parsed);setFeedback("");setLoading(false);
+    if(user){addDoc(collection(db,"generations"),{uid:user.uid,email:user.email,companyName:form.companyName,serviceName:form.serviceName,callPattern:form.callPattern,output:parsed,createdAt:serverTimestamp()}).catch(function(){});}
+  }).catch(function(){alert("生成に失敗しました。APIキーを確認してください。");setLoading(false);});
+}
 
   function downloadTxt(){
     if(!output)return;
