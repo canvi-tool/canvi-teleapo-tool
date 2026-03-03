@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "./src/src/firebase";
+import { auth, db } from "./src/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import AuthPage from "./src/src/AuthPage";
-import AdminPage from "./src/src/AdminPage";
+import AuthPage from "./src/AuthPage";
+import AdminPage from "./src/AdminPage";
 
 const CALL_PATTERNS = [
   { id: "new_list", label: "新規リスト向け", icon: "📋", desc: "未接触の新規ターゲットへのコールド架電" },
