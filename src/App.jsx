@@ -123,28 +123,36 @@ function ToggleInput({mode,setMode,textValue,onTextChange,textPlaceholder,textRo
 }
 
 function ScriptViewer({content}){
+  var[open,setOpen]=useState({});
   if(!content)return <div style={{color:"#aaa",fontSize:13,padding:20,textAlign:"center"}}>データがありません</div>;
-  var blocks=content.split(/\n(?=(?:■|STEP\s*\d+|PART|🔑|📋|🏆))/).filter(function(b){return b.trim();});
+  var blocks=content.split(/\n(?=(?:■|STEP|🏆))/).filter(function(b){return b.trim();});
   return(
-    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div style={{display:"flex",flexDirection:"column",gap:12}}>
       {blocks.map(function(block,i){
         var lines=block.split("\n").filter(function(l){return l.trim();});
         var title=lines[0]||"";
-        var isRcpt=/受付|PART\s*1|STEP\s*[AB]|突破/.test(title);
-        var accent=isRcpt?"#2563eb":RED;
+        var isPart1=/PART1|受付|STEP\s*A|STEP\s*B/.test(title);
+        var isGolden=/🏆/.test(title);
+        var accent=isGolden?GOLD:isPart1?"#2563eb":RED;
+        var isOpen=open[i]!==false;
         return(
-          <div key={i} style={{borderRadius:12,overflow:"hidden",border:"1.5px solid "+accent+"22"}}>
-            <div style={{background:accent,padding:"10px 18px",color:WHITE,fontWeight:800,fontSize:13}}>{title}</div>
-            <div style={{background:WHITE,padding:"16px 20px",display:"flex",flexDirection:"column",gap:6}}>
+          <div key={i} style={{borderRadius:14,overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",border:"1px solid "+accent+"33"}}>
+            <button onClick={function(){setOpen(function(o){var n=Object.assign({},o);n[i]=!isOpen;return n;});}} style={{width:"100%",background:"linear-gradient(135deg,"+accent+","+accent+"cc)",padding:"14px 20px",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
+              <span style={{fontWeight:800,fontSize:13,color:WHITE,textAlign:"left"}}>{title}</span>
+              <span style={{color:WHITE,fontSize:12,opacity:0.8,flexShrink:0}}>{isOpen?"▲":"▼"}</span>
+            </button>
+            {isOpen&&<div style={{background:WHITE,padding:"16px 20px",display:"flex",flexDirection:"column",gap:8}}>
               {lines.slice(1).map(function(line,j){
-                if(/💡|ポイント/.test(line))return <div key={j} style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"8px 12px",fontSize:12,color:"#92400e",lineHeight:1.7}}>{line}</div>;
-                if(line.includes("→"))return <div key={j} style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:8,padding:"7px 12px",fontSize:13,color:"#166534",lineHeight:1.7}}>{line}</div>;
-                if(/^【.+】/.test(line))return <div key={j} style={{fontSize:12,fontWeight:700,color:"#888",marginTop:4}}>{line}</div>;
-                if(/^\s*[①-⑩]|^\s*\d+\./.test(line))return <div key={j} style={{borderLeft:"3px solid "+accent,paddingLeft:10,fontSize:13,color:TEXT,lineHeight:1.7}}>{line}</div>;
-                if(/✅|※/.test(line))return <div key={j} style={{background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:8,padding:"7px 12px",fontSize:12,color:"#1e40af",lineHeight:1.7}}>{line}</div>;
-                return <div key={j} style={{fontSize:13,color:TEXT,lineHeight:1.8}}>{line}</div>;
+                if(/💡|ポイント/.test(line))return <div key={j} style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:10,padding:"10px 14px",fontSize:12,color:"#92400e",lineHeight:1.8}}>{line}</div>;
+                if(/具体セリフ|セリフ：/.test(line))return <div key={j} style={{background:DARK,borderRadius:10,padding:"12px 16px",fontSize:13,color:WHITE,lineHeight:1.8,fontWeight:600}}>{line}</div>;
+                if(line.startsWith("「")&&line.endsWith("」"))return <div key={j} style={{background:"#1a1a2e",borderLeft:"4px solid "+accent,borderRadius:"0 10px 10px 0",padding:"12px 16px",fontSize:13,color:"#e2e8f0",lineHeight:1.8,fontStyle:"italic"}}>{line}</div>;
+                if(line.includes("→"))return <div key={j} style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#166534",lineHeight:1.8}}>{line}</div>;
+                if(/^\s*[①-⑩]|^\s*\d+[\.\)]|^[-・]/.test(line))return <div key={j} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"4px 0"}}><span style={{color:accent,fontWeight:700,flexShrink:0}}>▶</span><span style={{fontSize:13,color:TEXT,lineHeight:1.8}}>{line.replace(/^[-・①-⑩\d\.\)]\s*/,"")}</span></div>;
+                if(/❌/.test(line))return <div key={j} style={{background:"#fff0f2",border:"2px solid "+RED+"44",borderRadius:10,padding:"10px 14px",fontSize:13,color:RED,fontWeight:700,lineHeight:1.8}}>{line}</div>;
+                if(/✅|※/.test(line))return <div key={j} style={{background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:10,padding:"10px 14px",fontSize:12,color:"#1e40af",lineHeight:1.8}}>{line}</div>;
+                return <div key={j} style={{fontSize:13,color:TEXT,lineHeight:1.9,padding:"2px 0"}}>{line}</div>;
               })}
-            </div>
+            </div>}
           </div>
         );
       })}
@@ -153,24 +161,37 @@ function ScriptViewer({content}){
 }
 
 function ObjectionViewer({content}){
+  var[open,setOpen]=useState({});
   if(!content)return <div style={{color:"#aaa",fontSize:13,padding:20,textAlign:"center"}}>データがありません</div>;
   var blocks=content.split(/\n(?=❌)/).filter(function(b){return b.trim();});
   return(
-    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div style={{display:"flex",flexDirection:"column",gap:12}}>
       {blocks.map(function(block,i){
         var lines=block.split("\n").filter(function(l){return l.trim();});
         var headline=lines[0].replace("❌","").trim();
+        var isOpen=open[i]!==false;
+        var stepColors={"1":"#2563eb","2":GOLD,"3":RED};
         return(
-          <div key={i} style={{borderRadius:12,overflow:"hidden",border:"1.5px solid #fee2e2"}}>
-            <div style={{background:"#dc2626",padding:"10px 18px",display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>❌</span><span style={{fontWeight:800,fontSize:13,color:WHITE}}>{headline}</span></div>
-            <div style={{background:WHITE,padding:"14px 18px",display:"flex",flexDirection:"column",gap:8}}>
+          <div key={i} style={{borderRadius:14,overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",border:"1px solid #fee2e2"}}>
+            <button onClick={function(){setOpen(function(o){var n=Object.assign({},o);n[i]=!isOpen;return n;});}} style={{width:"100%",background:"linear-gradient(135deg,#dc2626,#b91c1c)",padding:"14px 20px",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
+              <span style={{fontSize:20}}>❌</span>
+              <span style={{fontWeight:800,fontSize:13,color:WHITE,flex:1,textAlign:"left"}}>{headline}</span>
+              <span style={{color:WHITE,fontSize:12,opacity:0.8}}>{isOpen?"▲":"▼"}</span>
+            </button>
+            {isOpen&&<div style={{background:WHITE,padding:"16px 20px",display:"flex",flexDirection:"column",gap:10}}>
               {lines.slice(1).map(function(line,j){
-                if(line.includes("→"))return <div key={j} style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:8,padding:"8px 12px",fontSize:13,color:"#166534",lineHeight:1.7}}>{line}</div>;
-                if(/^\s*\d+\./.test(line))return <div key={j} style={{fontSize:13,fontWeight:700,color:TEXT,paddingTop:4}}>{line}</div>;
-                if(/💡|✅|※/.test(line))return <div key={j} style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"7px 12px",fontSize:12,color:"#92400e",lineHeight:1.7}}>{line}</div>;
-                return <div key={j} style={{fontSize:13,color:"#555",lineHeight:1.7}}>{line}</div>;
+                var stepMatch=line.match(/^(\d+)[\.．]/);
+                var stepColor=stepMatch?stepColors[stepMatch[1]]:"#555";
+                if(stepMatch)return(
+                  <div key={j} style={{borderRadius:10,overflow:"hidden",border:"1px solid "+stepColor+"33"}}>
+                    <div style={{background:stepColor,padding:"6px 14px",fontSize:11,fontWeight:800,color:WHITE}}>{["","① 共感","② 転換","③ クロージング"][parseInt(stepMatch[1])]||line}</div>
+                  </div>
+                );
+                if(line.startsWith("「"))return <div key={j} style={{background:"#1a1a2e",borderRadius:10,padding:"12px 16px",fontSize:13,color:"#e2e8f0",lineHeight:1.8,marginTop:-8,fontStyle:"italic"}}>{line}</div>;
+                if(line.includes("→"))return <div key={j} style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#166534",lineHeight:1.8}}>{line}</div>;
+                return <div key={j} style={{fontSize:13,color:"#555",lineHeight:1.8}}>{line}</div>;
               })}
-            </div>
+            </div>}
           </div>
         );
       })}
@@ -193,20 +214,19 @@ function FaqViewer({content}){
     <div style={{display:"flex",flexDirection:"column",gap:10}}>
       {pairs.map(function(p,i){
         return(
-          <div key={i} style={{borderRadius:12,border:"1.5px solid "+(open===i?RED:BORDER),overflow:"hidden"}}>
-            <button onClick={function(){setOpen(open===i?null:i);}} style={{width:"100%",background:open===i?RED_LIGHT:WHITE,padding:"13px 18px",border:"none",cursor:"pointer",display:"flex",alignItems:"flex-start",gap:12,textAlign:"left"}}>
-              <span style={{minWidth:26,height:26,borderRadius:"50%",background:open===i?RED:DARK,color:GOLD,fontSize:12,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>Q</span>
-              <span style={{fontSize:13,fontWeight:700,color:TEXT,flex:1,lineHeight:1.6}}>{p.q}</span>
-              <span style={{color:RED,fontSize:14,fontWeight:700}}>{open===i?"▲":"▼"}</span>
+          <div key={i} style={{borderRadius:14,border:"1.5px solid "+(open===i?RED:BORDER),overflow:"hidden",boxShadow:open===i?"0 4px 16px rgba(232,0,29,0.1)":"0 1px 4px rgba(0,0,0,0.04)"}}>
+            <button onClick={function(){setOpen(open===i?null:i);}} style={{width:"100%",background:open===i?"linear-gradient(135deg,"+DARK+",#1a0005)":WHITE,padding:"14px 20px",border:"none",cursor:"pointer",display:"flex",alignItems:"flex-start",gap:14,textAlign:"left"}}>
+              <span style={{minWidth:28,height:28,borderRadius:"50%",background:open===i?RED:GRAY_LIGHT,color:open===i?WHITE:RED,fontSize:12,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1,border:"2px solid "+(open===i?RED:BORDER)}}>Q</span>
+              <span style={{fontSize:13,fontWeight:700,color:open===i?WHITE:TEXT,flex:1,lineHeight:1.7}}>{p.q}</span>
+              <span style={{color:open===i?GOLD:RED,fontSize:14,fontWeight:700,flexShrink:0}}>{open===i?"▲":"▼"}</span>
             </button>
-            {open===i&&<div style={{padding:"14px 18px 14px 56px",background:WHITE,fontSize:13,color:"#374151",lineHeight:1.8,borderTop:"1px solid "+RED_LIGHT,whiteSpace:"pre-wrap"}}>{p.a.join("\n")}</div>}
+            {open===i&&<div style={{padding:"16px 20px 16px 62px",background:"#fafafa",fontSize:13,color:"#374151",lineHeight:1.9,borderTop:"2px solid "+RED_LIGHT,whiteSpace:"pre-wrap"}}>{p.a.join("\n")}</div>}
           </div>
         );
       })}
     </div>
   );
 }
-
 function VersionHistory({versions,currentId,onRestore}){
   if(!versions.length)return null;
   return(
