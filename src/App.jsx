@@ -76,16 +76,15 @@ function H({children,sub}){
   );
 }
 
-function InputOrUpload({value,onChange,onUploaded,placeholder,rows}){
-  var[mode,setMode]=useState("text");
-  var[fileName,setFileName]=useState("");
+function PdfDropZone({onText,uploaded,setUploaded,fileName,setFileName}){
+  var[dragging,setDragging]=useState(false);
   var[loading,setLoading]=useState(false);
 
-  function handleFile(e){
-    var file=e.target.files[0];
-    if(!file)return;
+  function processFile(file){
+    if(!file||file.type!=="application/pdf")return;
     setFileName(file.name);
     setLoading(true);
+    setUploaded(false);
     var reader=new FileReader();
     reader.onload=function(ev){
       var base64=ev.target.result.split(",")[1];
@@ -95,13 +94,63 @@ function InputOrUpload({value,onChange,onUploaded,placeholder,rows}){
         body:JSON.stringify({model:"claude-opus-4-5",max_tokens:2000,messages:[{role:"user",content:[{type:"document",source:{type:"base64",media_type:"application/pdf",data:base64}},{type:"text",text:"このドキュメントの内容を日本語でそのまま抽出してください。"}]}]})
       }).then(function(res){return res.json();}).then(function(data){
         var text=data.content?data.content.map(function(c){return c.text||"";}).join(""):"";
-        onUploaded(text);
+        onText(text);
+        setUploaded(true);
         setLoading(false);
       }).catch(function(){setLoading(false);});
     };
     reader.readAsDataURL(file);
   }
 
+  function onDrop(e){
+    e.preventDefault();setDragging(false);
+    var file=e.dataTransfer.files[0];
+    processFile(file);
+  }
+
+  var borderColor=uploaded?"#22c55e":dragging?RED:BORDER;
+  var bg=uploaded?"#f0fdf4":dragging?RED_LIGHT:GRAY_LIGHT;
+
+  return(
+    <div
+      onDragOver={function(e){e.preventDefault();setDragging(true);}}
+      onDragLeave={function(){setDragging(false);}}
+      onDrop={onDrop}
+      style={{border:"2px dashed "+borderColor,borderRadius:12,padding:"32px 20px",textAlign:"center",background:bg,transition:"all 0.2s",cursor:"pointer"}}
+    >
+      {loading&&(
+        <div>
+          <div style={{fontSize:36,marginBottom:8}}>⏳</div>
+          <div style={{fontSize:13,color:GOLD,fontWeight:700}}>PDFを読み込み中...</div>
+        </div>
+      )}
+      {!loading&&!uploaded&&(
+        <div>
+          <div style={{fontSize:36,marginBottom:8}}>{dragging?"📂":"📄"}</div>
+          <div style={{fontSize:13,color:TEXT_MUTED,marginBottom:4,fontWeight:600}}>ここにPDFをドラッグ＆ドロップ</div>
+          <div style={{fontSize:11,color:"#aaa",marginBottom:16}}>または</div>
+          <label style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 24px",borderRadius:8,background:RED,color:WHITE,fontWeight:700,fontSize:13,cursor:"pointer"}}>
+            ファイルを選択
+            <input type="file" accept="application/pdf" onChange={function(e){processFile(e.target.files[0]);}} style={{display:"none"}}/>
+          </label>
+        </div>
+      )}
+      {!loading&&uploaded&&(
+        <div>
+          <div style={{fontSize:36,marginBottom:8}}>✅</div>
+          <div style={{fontSize:13,color:"#166534",fontWeight:800,marginBottom:4}}>{fileName}</div>
+          <div style={{fontSize:11,color:"#166534",marginBottom:14}}>読み込み完了！</div>
+          <label style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 18px",borderRadius:8,border:"2px solid "+BORDER,background:WHITE,color:TEXT_MUTED,fontWeight:600,fontSize:12,cursor:"pointer"}}>
+            別のファイルに変更
+            <input type="file" accept="application/pdf" onChange={function(e){setUploaded(false);processFile(e.target.files[0]);}} style={{display:"none"}}/>
+          </label>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ToggleInput({mode,setMode,textValue,onTextChange,textPlaceholder,textRows,onPdfText,uploaded,setUploaded,fileName,setFileName,required}){
   return(
     <div>
       <div style={{display:"flex",gap:8,marginBottom:14}}>
@@ -114,39 +163,8 @@ function InputOrUpload({value,onChange,onUploaded,placeholder,rows}){
           );
         })}
       </div>
-      {mode==="text"&&(
-        <Inp value={value} onChange={onChange} placeholder={placeholder||"テキストを入力してください"} multi={true} rows={rows||4}/>
-      )}
-      {mode==="pdf"&&(
-        <div style={{border:"2px dashed "+(fileName?"#22c55e":BORDER),borderRadius:12,padding:"28px",textAlign:"center",background:fileName?"#f0fdf4":GRAY_LIGHT}}>
-          {!fileName&&!loading&&(
-            <div>
-              <div style={{fontSize:32,marginBottom:8}}>📄</div>
-              <div style={{fontSize:13,color:TEXT_MUTED,marginBottom:14}}>PDFファイルをアップロードしてください</div>
-              <label style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 24px",borderRadius:8,background:RED,color:WHITE,fontWeight:700,fontSize:13,cursor:"pointer"}}>
-                ファイルを選択
-                <input type="file" accept="application/pdf" onChange={handleFile} style={{display:"none"}}/>
-              </label>
-            </div>
-          )}
-          {loading&&(
-            <div>
-              <div style={{fontSize:32,marginBottom:8}}>⏳</div>
-              <div style={{fontSize:13,color:GOLD,fontWeight:700}}>PDFを読み込み中...</div>
-            </div>
-          )}
-          {fileName&&!loading&&(
-            <div>
-              <div style={{fontSize:32,marginBottom:8}}>✅</div>
-              <div style={{fontSize:13,color:"#166534",fontWeight:700,marginBottom:8}}>{"✓ "+fileName}</div>
-              <label style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 18px",borderRadius:8,border:"2px solid "+BORDER,background:WHITE,color:TEXT_MUTED,fontWeight:600,fontSize:12,cursor:"pointer"}}>
-                別のファイルに変更
-                <input type="file" accept="application/pdf" onChange={handleFile} style={{display:"none"}}/>
-              </label>
-            </div>
-          )}
-        </div>
-      )}
+      {mode==="text"&&<Inp value={textValue} onChange={onTextChange} placeholder={textPlaceholder} multi={true} rows={textRows||4}/>}
+      {mode==="pdf"&&<PdfDropZone onText={onPdfText} uploaded={uploaded} setUploaded={setUploaded} fileName={fileName} setFileName={setFileName}/>}
     </div>
   );
 }
@@ -281,8 +299,10 @@ export default function CanviTool(){
   var[output,setOutput]=useState(null);
   var[overviewMode,setOverviewMode]=useState("text");
   var[overviewUploaded,setOverviewUploaded]=useState(false);
+  var[overviewFileName,setOverviewFileName]=useState("");
   var[scriptMode,setScriptMode]=useState("text");
   var[scriptUploaded,setScriptUploaded]=useState(false);
+  var[scriptFileName,setScriptFileName]=useState("");
   var[form,setForm]=useState({companyName:"",serviceName:"",serviceOverview:"",serviceUrl:"",talkScript:"",voiceNote:"",callPattern:"",industries:[],employeeRange:[],departments:[],area:"",contactRole:"",goal:"",appealPoints:"",differentiation:"",competitors:"",rcptObjections:"",contactObjections:"",situationNotes:""});
 
   function set(k,v){setForm(function(f){return Object.assign({},f,{[k]:v});});}
@@ -328,78 +348,6 @@ export default function CanviTool(){
     a.click();
   }
 
-  function OverviewInput(){
-    function handleFile(e){
-      var file=e.target.files[0];if(!file)return;
-      var reader=new FileReader();
-      reader.onload=function(ev){
-        var base64=ev.target.result.split(",")[1];
-        fetch("https://api.anthropic.com/v1/messages",{
-          method:"POST",
-          headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-allow-browser":"true"},
-          body:JSON.stringify({model:"claude-opus-4-5",max_tokens:2000,messages:[{role:"user",content:[{type:"document",source:{type:"base64",media_type:"application/pdf",data:base64}},{type:"text",text:"このドキュメントの内容を日本語でそのまま抽出してください。"}]}]})
-        }).then(function(res){return res.json();}).then(function(data){
-          var text=data.content?data.content.map(function(c){return c.text||"";}).join(""):"";
-          set("serviceOverview",text);setOverviewUploaded(true);
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-    return(
-      <div>
-        <div style={{display:"flex",gap:8,marginBottom:14}}>
-          {[["text","✏️ テキストで入力"],["pdf","📎 PDFをアップロード"]].map(function(item){
-            var active=overviewMode===item[0];
-            return <button key={item[0]} onClick={function(){setOverviewMode(item[0]);}} style={{padding:"8px 18px",borderRadius:20,border:"2px solid "+(active?RED:BORDER),background:active?RED_LIGHT:WHITE,color:active?RED:TEXT_MUTED,fontWeight:active?700:500,fontSize:13,cursor:"pointer"}}>{item[1]}</button>;
-          })}
-        </div>
-        {overviewMode==="text"&&<Inp value={form.serviceOverview} onChange={function(v){set("serviceOverview",v);}} placeholder="サービスの特徴・解決できる課題・実績などを入力" multi={true} rows={4}/>}
-        {overviewMode==="pdf"&&(
-          <div style={{border:"2px dashed "+(overviewUploaded?"#22c55e":BORDER),borderRadius:12,padding:"28px",textAlign:"center",background:overviewUploaded?"#f0fdf4":GRAY_LIGHT}}>
-            {!overviewUploaded&&<div><div style={{fontSize:32,marginBottom:8}}>📄</div><div style={{fontSize:13,color:TEXT_MUTED,marginBottom:14}}>PDFファイルをアップロードしてください</div><label style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 24px",borderRadius:8,background:RED,color:WHITE,fontWeight:700,fontSize:13,cursor:"pointer"}}>ファイルを選択<input type="file" accept="application/pdf" onChange={handleFile} style={{display:"none"}}/></label></div>}
-            {overviewUploaded&&<div><div style={{fontSize:32,marginBottom:8}}>✅</div><div style={{fontSize:13,color:"#166534",fontWeight:700,marginBottom:8}}>PDFの読み込みが完了しました</div><label style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 18px",borderRadius:8,border:"2px solid "+BORDER,background:WHITE,color:TEXT_MUTED,fontWeight:600,fontSize:12,cursor:"pointer"}}>別のファイルに変更<input type="file" accept="application/pdf" onChange={function(e){setOverviewUploaded(false);handleFile(e);}} style={{display:"none"}}/></label></div>}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  function ScriptInput(){
-    function handleFile(e){
-      var file=e.target.files[0];if(!file)return;
-      var reader=new FileReader();
-      reader.onload=function(ev){
-        var base64=ev.target.result.split(",")[1];
-        fetch("https://api.anthropic.com/v1/messages",{
-          method:"POST",
-          headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-allow-browser":"true"},
-          body:JSON.stringify({model:"claude-opus-4-5",max_tokens:2000,messages:[{role:"user",content:[{type:"document",source:{type:"base64",media_type:"application/pdf",data:base64}},{type:"text",text:"このドキュメントの内容を日本語でそのまま抽出してください。"}]}]})
-        }).then(function(res){return res.json();}).then(function(data){
-          var text=data.content?data.content.map(function(c){return c.text||"";}).join(""):"";
-          set("talkScript",text);setScriptUploaded(true);
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-    return(
-      <div>
-        <div style={{display:"flex",gap:8,marginBottom:14}}>
-          {[["text","✏️ テキストで入力"],["pdf","📎 PDFをアップロード"]].map(function(item){
-            var active=scriptMode===item[0];
-            return <button key={item[0]} onClick={function(){setScriptMode(item[0]);}} style={{padding:"8px 18px",borderRadius:20,border:"2px solid "+(active?RED:BORDER),background:active?RED_LIGHT:WHITE,color:active?RED:TEXT_MUTED,fontWeight:active?700:500,fontSize:13,cursor:"pointer"}}>{item[1]}</button>;
-          })}
-        </div>
-        {scriptMode==="text"&&<Inp value={form.talkScript} onChange={function(v){set("talkScript",v);}} placeholder="既存スクリプトがあれば貼り付けてください" multi={true} rows={4}/>}
-        {scriptMode==="pdf"&&(
-          <div style={{border:"2px dashed "+(scriptUploaded?"#22c55e":BORDER),borderRadius:12,padding:"28px",textAlign:"center",background:scriptUploaded?"#f0fdf4":GRAY_LIGHT}}>
-            {!scriptUploaded&&<div><div style={{fontSize:32,marginBottom:8}}>📄</div><div style={{fontSize:13,color:TEXT_MUTED,marginBottom:14}}>PDFファイルをアップロードしてください</div><label style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 24px",borderRadius:8,background:RED,color:WHITE,fontWeight:700,fontSize:13,cursor:"pointer"}}>ファイルを選択<input type="file" accept="application/pdf" onChange={handleFile} style={{display:"none"}}/></label></div>}
-            {scriptUploaded&&<div><div style={{fontSize:32,marginBottom:8}}>✅</div><div style={{fontSize:13,color:"#166534",fontWeight:700,marginBottom:8}}>PDFの読み込みが完了しました</div><label style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 18px",borderRadius:8,border:"2px solid "+BORDER,background:WHITE,color:TEXT_MUTED,fontWeight:600,fontSize:12,cursor:"pointer"}}>別のファイルに変更<input type="file" accept="application/pdf" onChange={function(e){setScriptUploaded(false);handleFile(e);}} style={{display:"none"}}/></label></div>}
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return(
     <div style={{minHeight:"100vh",background:"#f7f7f7",fontFamily:"'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif",paddingBottom:80}}>
       <div style={{background:DARK,padding:"0 40px",display:"flex",alignItems:"center",justifyContent:"space-between",height:56,boxShadow:"0 2px 20px rgba(0,0,0,0.3)",position:"sticky",top:0,zIndex:100}}>
@@ -435,9 +383,29 @@ export default function CanviTool(){
               <div><Lbl req={true}>クライアント会社名</Lbl><Inp value={form.companyName} onChange={function(v){set("companyName",v);}} placeholder="例：株式会社〇〇"/></div>
               <div><Lbl req={true}>サービス名</Lbl><Inp value={form.serviceName} onChange={function(v){set("serviceName",v);}} placeholder="例：〇〇クラウド"/></div>
             </div>
-            <div style={{marginBottom:24}}><Lbl req={true}>サービス概要</Lbl><OverviewInput/></div>
+            <div style={{marginBottom:24}}>
+              <Lbl req={true}>サービス概要</Lbl>
+              <ToggleInput
+                mode={overviewMode} setMode={setOverviewMode}
+                textValue={form.serviceOverview} onTextChange={function(v){set("serviceOverview",v);}}
+                textPlaceholder="サービスの特徴・解決できる課題・実績などを入力"
+                onPdfText={function(t){set("serviceOverview",t);}}
+                uploaded={overviewUploaded} setUploaded={setOverviewUploaded}
+                fileName={overviewFileName} setFileName={setOverviewFileName}
+              />
+            </div>
             <div style={{marginBottom:24}}><Lbl>サービスURL（任意）</Lbl><Inp value={form.serviceUrl} onChange={function(v){set("serviceUrl",v);}} placeholder="https://..."/></div>
-            <div style={{marginBottom:24}}><Lbl>既存トークスクリプト（任意）</Lbl><ScriptInput/></div>
+            <div style={{marginBottom:24}}>
+              <Lbl>既存トークスクリプト（任意）</Lbl>
+              <ToggleInput
+                mode={scriptMode} setMode={setScriptMode}
+                textValue={form.talkScript} onTextChange={function(v){set("talkScript",v);}}
+                textPlaceholder="既存スクリプトがあれば貼り付けてください"
+                onPdfText={function(t){set("talkScript",t);}}
+                uploaded={scriptUploaded} setUploaded={setScriptUploaded}
+                fileName={scriptFileName} setFileName={setScriptFileName}
+              />
+            </div>
             <div><Lbl>音声データの文字起こし（任意）</Lbl><Inp value={form.voiceNote} onChange={function(v){set("voiceNote",v);}} placeholder="音声データを文字起こしして貼り付けてください" multi={true} rows={3}/></div>
           </Card>
         )}
