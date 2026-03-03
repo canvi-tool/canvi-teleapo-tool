@@ -86,6 +86,7 @@ function PdfDropZone({onText,uploaded,setUploaded,fileName,setFileName}){
   var[loading,setLoading]=useState(false);
   function processFile(file){
   if(!file||file.type!=="application/pdf")return;
+  if(file.size>4500000){alert("PDFのファイルサイズは4.5MB以下にしてください。");return;}
   setFileName(file.name);setUploaded(true);setLoading(true);
   var reader=new FileReader();
   reader.onload=function(ev){
