@@ -19,7 +19,9 @@ const INDUSTRIES = ["IT・ソフトウェア","SaaS・クラウド","製造業",
 const STEPS = [{id:1,label:"サービス情報",icon:"📦"},{id:2,label:"架電パターン",icon:"📞"},{id:3,label:"ターゲット設定",icon:"🎯"},{id:4,label:"営業戦略",icon:"⚡"},{id:5,label:"断り文句",icon:"🛡️"},{id:6,label:"生成・確認",icon:"✨"}];
 
 const RED="#e8001d",RED_DARK="#b50017",RED_LIGHT="#fff0f2",GOLD="#f5a623",DARK="#0f0f0f",GRAY_LIGHT="#f5f5f5",WHITE="#ffffff",TEXT="#1a1a1a",TEXT_MUTED="#666",BORDER="#e8e8e8";
-const BG="#0a1628",SURFACE="#112240",SURFACE2="#1a2f50",TEAL="#0e9b7e",TEAL_LIGHT="#13c0a0",BLUE="#4a9eff";
+
+// Output theme - same palette as main, dark background
+const BG="#0d0d0d",SURFACE="#1a1a1a",SURFACE2="#252525",TEAL="#0e9b7e",TEAL_LIGHT="#13c0a0",BLUE="#4a9eff";
 
 function StepIndicator({current}){
   return(
@@ -123,8 +125,40 @@ function ToggleInput({mode,setMode,textValue,onTextChange,textPlaceholder,textRo
   );
 }
 
-// ===== OUTPUT VIEWER COMPONENTS (dark theme) =====
+// ===== INPUT SUMMARY CARD =====
+function InputSummary({form}){
+  var p=CALL_PATTERNS.find(function(x){return x.id===form.callPattern;});
+  var items=[
+    {icon:"🏢",label:"会社名",value:form.companyName},
+    {icon:"📦",label:"サービス名",value:form.serviceName},
+    {icon:"📞",label:"架電パターン",value:p?p.label:"-"},
+    {icon:"🏭",label:"ターゲット業界",value:form.industries.join("・")||"-"},
+    {icon:"📍",label:"エリア",value:form.area||"-"},
+    {icon:"🎯",label:"訴求ポイント",value:form.appealPoints||"-"},
+    {icon:"🛡️",label:"受付断り",value:form.rcptObjections||"なし"},
+    {icon:"💬",label:"担当者断り",value:form.contactObjections||"なし"},
+  ];
+  return(
+    <div style={{background:SURFACE,borderRadius:12,padding:"16px 20px",marginBottom:16,border:"1px solid rgba(255,255,255,0.08)"}}>
+      <div style={{fontSize:11,fontWeight:700,color:GOLD,letterSpacing:"0.1em",marginBottom:12}}>📋 入力内容サマリー</div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        {items.map(function(item,i){
+          return(
+            <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+              <span style={{fontSize:13,flexShrink:0}}>{item.icon}</span>
+              <div>
+                <div style={{fontSize:10,color:"#7a96b8",fontWeight:600,marginBottom:1}}>{item.label}</div>
+                <div style={{fontSize:12,color:"#c8d8f0",lineHeight:1.5,wordBreak:"break-all"}}>{item.value&&item.value.length>40?item.value.slice(0,40)+"...":item.value||"-"}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
+// ===== OUTPUT VIEWER COMPONENTS =====
 function ScriptViewer({content}){
   var[open,setOpen]=useState({0:true,1:true});
   if(!content)return <div style={{color:"#7a96b8",fontSize:13,padding:20,textAlign:"center"}}>データがありません</div>;
@@ -134,9 +168,9 @@ function ScriptViewer({content}){
     if(/^■\s*PART|^🔑|^📋\s*PART/.test(t)||/^STEP\s+0[2-6]/.test(t)||/^🏆/.test(t)){
       if(cur)blocks.push(cur);
       var isGate=/PART\s*1|受付/.test(t);var isGolden=/🏆/.test(t);
-      cur={title:t,lines:[],color:isGolden?GOLD:isGate?BLUE:RED,icon:isGolden?"🏆":isGate?"🔑":"📋"};
+      cur={title:t,lines:[],color:isGolden?GOLD:isGate?RED:RED_DARK,icon:isGolden?"🏆":isGate?"🔑":"📋"};
     } else {
-      if(!cur)cur={title:"",lines:[],color:TEAL,icon:"📋"};
+      if(!cur)cur={title:"",lines:[],color:RED,icon:"📋"};
       cur.lines.push(line);
     }
   });
@@ -146,27 +180,26 @@ function ScriptViewer({content}){
       {blocks.map(function(block,i){
         var isOpen=open[i]!==false;
         return(
-          <div key={i} style={{borderRadius:12,overflow:"hidden",border:"1px solid "+block.color+"44",boxShadow:"0 2px 10px rgba(0,0,0,0.3)"}}>
-            {block.title&&<button onClick={function(){setOpen(function(o){var n=Object.assign({},o);n[i]=!isOpen;return n;});}} style={{width:"100%",background:"linear-gradient(135deg,"+BG+" 0%,"+SURFACE+" 100%)",borderTop:"3px solid "+block.color,padding:"14px 20px",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:12,textAlign:"left"}}>
-              <div style={{width:32,height:32,borderRadius:7,background:block.color+"22",border:"1px solid "+block.color+"55",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>{block.icon}</div>
+          <div key={i} style={{borderRadius:12,overflow:"hidden",border:"1px solid "+block.color+"55"}}>
+            {block.title&&<button onClick={function(){setOpen(function(o){var n=Object.assign({},o);n[i]=!isOpen;return n;});}} style={{width:"100%",background:"linear-gradient(135deg,"+BG+","+SURFACE+")",borderTop:"3px solid "+block.color,padding:"13px 18px",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:10,textAlign:"left"}}>
+              <div style={{width:30,height:30,borderRadius:6,background:block.color+"22",border:"1px solid "+block.color+"44",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{block.icon}</div>
               <span style={{fontWeight:800,fontSize:13,color:WHITE,flex:1}}>{block.title}</span>
               <span style={{color:block.color,fontSize:11,opacity:0.8}}>{isOpen?"▲":"▼"}</span>
             </button>}
-            {(isOpen||!block.title)&&<div style={{background:SURFACE,padding:"14px 18px",display:"flex",flexDirection:"column",gap:3}}>
+            {(isOpen||!block.title)&&<div style={{background:SURFACE,padding:"13px 16px",display:"flex",flexDirection:"column",gap:3}}>
               {block.lines.map(function(line,j){
                 var t=line.trim();
-                if(!t)return <div key={j} style={{height:6}}/>;
-                if(/^💡/.test(t))return <div key={j} style={{background:"rgba(245,166,35,0.07)",border:"1px solid rgba(245,166,35,0.2)",borderRadius:8,padding:"9px 13px",fontSize:12,color:"#c8a82a",display:"flex",gap:7,lineHeight:1.8,marginTop:4}}><span>💡</span><span>{t.replace(/^💡\s*/,"")}</span></div>;
-                if(/^【あなた】/.test(t))return <div key={j} style={{fontFamily:"monospace",fontSize:10,color:TEAL_LIGHT,letterSpacing:"1px",marginTop:10,marginBottom:3,display:"flex",alignItems:"center",gap:5}}><span style={{width:5,height:5,borderRadius:"50%",background:TEAL_LIGHT,display:"inline-block"}}></span>あなた（発信者）</div>;
-                if(/^【受付】/.test(t))return <div key={j} style={{fontFamily:"monospace",fontSize:10,color:"#e87a7a",letterSpacing:"1px",marginTop:10,marginBottom:3,display:"flex",alignItems:"center",gap:5}}><span style={{width:5,height:5,borderRadius:"50%",background:"#e87a7a",display:"inline-block"}}></span>受付</div>;
-                if(t.startsWith("「")&&t.endsWith("」"))return <div key={j} style={{background:SURFACE2,borderLeft:"3px solid "+block.color,borderRadius:"0 9px 9px 0",padding:"11px 15px",fontSize:13,color:"#c8d8f0",lineHeight:1.85,marginBottom:3}}>{t}</div>;
-                if(/^→/.test(t))return <div key={j} style={{background:"rgba(14,155,126,0.07)",border:"1px solid rgba(14,155,126,0.18)",borderRadius:7,padding:"8px 13px",fontSize:13,color:"#7dd4c0",lineHeight:1.8,marginLeft:8}}>{t}</div>;
-                if(/^✅/.test(t))return <div key={j} style={{background:"rgba(74,158,255,0.07)",border:"1px solid rgba(74,158,255,0.18)",borderRadius:7,padding:"7px 12px",fontSize:12,color:"#7aaed4",lineHeight:1.8}}>{t}</div>;
-                if(/^[①-⑥]|^\s*\d\.\s/.test(t))return <div key={j} style={{display:"flex",gap:7,alignItems:"flex-start",padding:"2px 0"}}><span style={{color:block.color,fontWeight:700,flexShrink:0,fontSize:13,marginTop:1}}>▶</span><span style={{fontSize:13,color:"#a8bdd4",lineHeight:1.8}}>{t.replace(/^[①-⑥]\s*|^\d\.\s*/,"")}</span></div>;
-                if(/^❌/.test(t))return <div key={j} style={{background:"rgba(232,86,86,0.08)",border:"1px solid rgba(232,86,86,0.22)",borderRadius:7,padding:"9px 13px",fontSize:13,color:"#e87a7a",fontWeight:700,lineHeight:1.8,marginTop:8}}>{t}</div>;
-                if(/^▍|^パターン[①-⑤]/.test(t))return <div key={j} style={{fontSize:10,fontFamily:"monospace",color:TEAL_LIGHT,letterSpacing:"1px",marginTop:10,marginBottom:3,borderBottom:"1px solid "+SURFACE2,paddingBottom:3}}>{t}</div>;
-                if(/^#{1,3}\s/.test(t))return <div key={j} style={{fontSize:13,fontWeight:800,color:WHITE,marginTop:8,marginBottom:2}}>{t.replace(/^#+\s/,"")}</div>;
-                return <div key={j} style={{fontSize:13,color:"#a8bdd4",lineHeight:1.85,padding:"1px 0"}}>{t}</div>;
+                if(!t)return <div key={j} style={{height:5}}/>;
+                if(/^💡/.test(t))return <div key={j} style={{background:"rgba(245,166,35,0.08)",border:"1px solid rgba(245,166,35,0.22)",borderRadius:8,padding:"8px 12px",fontSize:12,color:GOLD,display:"flex",gap:6,lineHeight:1.8,marginTop:3}}><span>💡</span><span>{t.replace(/^💡\s*/,"")}</span></div>;
+                if(/^【あなた】/.test(t))return <div key={j} style={{fontFamily:"monospace",fontSize:10,color:TEAL_LIGHT,letterSpacing:"1px",marginTop:8,marginBottom:2,display:"flex",alignItems:"center",gap:5}}><span style={{width:5,height:5,borderRadius:"50%",background:TEAL_LIGHT,display:"inline-block"}}></span>あなた（発信者）</div>;
+                if(/^【受付】/.test(t))return <div key={j} style={{fontFamily:"monospace",fontSize:10,color:"#e87a7a",letterSpacing:"1px",marginTop:8,marginBottom:2,display:"flex",alignItems:"center",gap:5}}><span style={{width:5,height:5,borderRadius:"50%",background:"#e87a7a",display:"inline-block"}}></span>受付</div>;
+                if(t.startsWith("「")&&t.endsWith("」"))return <div key={j} style={{background:SURFACE2,borderLeft:"3px solid "+block.color,borderRadius:"0 8px 8px 0",padding:"10px 14px",fontSize:13,color:"#e8e8e8",lineHeight:1.85,marginBottom:3}}>{t}</div>;
+                if(/^→/.test(t))return <div key={j} style={{background:"rgba(232,0,29,0.06)",border:"1px solid rgba(232,0,29,0.15)",borderRadius:7,padding:"7px 12px",fontSize:13,color:"#ff9999",lineHeight:1.8,marginLeft:8}}>{t}</div>;
+                if(/^✅/.test(t))return <div key={j} style={{background:"rgba(245,166,35,0.07)",border:"1px solid rgba(245,166,35,0.18)",borderRadius:7,padding:"7px 12px",fontSize:12,color:GOLD,lineHeight:1.8}}>{t}</div>;
+                if(/^[①-⑥]|^\s*\d\.\s/.test(t))return <div key={j} style={{display:"flex",gap:7,alignItems:"flex-start",padding:"2px 0"}}><span style={{color:RED,fontWeight:700,flexShrink:0,fontSize:13,marginTop:1}}>▶</span><span style={{fontSize:13,color:"#c8c8c8",lineHeight:1.8}}>{t.replace(/^[①-⑥]\s*|^\d\.\s*/,"")}</span></div>;
+                if(/^❌/.test(t))return <div key={j} style={{background:"rgba(232,0,29,0.08)",border:"1px solid rgba(232,0,29,0.22)",borderRadius:7,padding:"9px 12px",fontSize:13,color:"#ff6b6b",fontWeight:700,lineHeight:1.8,marginTop:8}}>{t}</div>;
+                if(/^▍|^パターン[①-⑤]/.test(t))return <div key={j} style={{fontSize:10,fontFamily:"monospace",color:"#888",letterSpacing:"1px",marginTop:10,marginBottom:2,borderBottom:"1px solid "+SURFACE2,paddingBottom:3}}>{t}</div>;
+                return <div key={j} style={{fontSize:13,color:"#b0b0b0",lineHeight:1.85,padding:"1px 0"}}>{t}</div>;
               })}
             </div>}
           </div>
@@ -187,26 +220,26 @@ function ObjectionViewer({content}){
         var headline=lines[0].replace(/^❌\s*/,"").replace(/^「|」$/g,"").trim();
         var isOpen=open[i]!==false;
         return(
-          <div key={i} style={{borderRadius:12,overflow:"hidden",border:"1px solid rgba(232,86,86,0.25)",boxShadow:"0 2px 8px rgba(0,0,0,0.3)"}}>
-            <button onClick={function(){setOpen(function(o){var n=Object.assign({},o);n[i]=!isOpen;return n;});}} style={{width:"100%",background:"linear-gradient(135deg,"+BG+","+SURFACE+")",borderTop:"3px solid #dc2626",padding:"14px 20px",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
-              <div style={{width:32,height:32,borderRadius:7,background:"rgba(232,86,86,0.12)",border:"1px solid rgba(232,86,86,0.25)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>❌</div>
+          <div key={i} style={{borderRadius:12,overflow:"hidden",border:"1px solid rgba(232,0,29,0.3)"}}>
+            <button onClick={function(){setOpen(function(o){var n=Object.assign({},o);n[i]=!isOpen;return n;});}} style={{width:"100%",background:"linear-gradient(135deg,"+BG+","+SURFACE+")",borderTop:"3px solid "+RED,padding:"13px 18px",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:30,height:30,borderRadius:6,background:"rgba(232,0,29,0.12)",border:"1px solid rgba(232,0,29,0.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>❌</div>
               <span style={{fontWeight:800,fontSize:13,color:WHITE,flex:1,textAlign:"left"}}>「{headline}」</span>
-              <span style={{color:"#e87a7a",fontSize:11,opacity:0.8}}>{isOpen?"▲":"▼"}</span>
+              <span style={{color:RED,fontSize:11,opacity:0.8}}>{isOpen?"▲":"▼"}</span>
             </button>
-            {isOpen&&<div style={{background:SURFACE,padding:"14px 18px",display:"flex",flexDirection:"column",gap:8}}>
-              <div style={{background:"rgba(232,86,86,0.06)",borderLeft:"3px solid #dc2626",borderRadius:"0 7px 7px 0",padding:"9px 13px",marginBottom:2}}>
-                <div style={{fontFamily:"monospace",fontSize:10,color:"#e87a7a",letterSpacing:"1px",marginBottom:3,display:"flex",alignItems:"center",gap:5}}><span style={{width:5,height:5,borderRadius:"50%",background:"#e87a7a",display:"inline-block"}}></span>相手の言葉</div>
-                <div style={{fontSize:13,color:"#c07a7a",lineHeight:1.8}}>「{headline}」</div>
+            {isOpen&&<div style={{background:SURFACE,padding:"13px 16px",display:"flex",flexDirection:"column",gap:7}}>
+              <div style={{background:"rgba(232,0,29,0.06)",borderLeft:"3px solid "+RED,borderRadius:"0 7px 7px 0",padding:"8px 12px",marginBottom:2}}>
+                <div style={{fontFamily:"monospace",fontSize:10,color:"#e87a7a",letterSpacing:"1px",marginBottom:2,display:"flex",alignItems:"center",gap:5}}><span style={{width:5,height:5,borderRadius:"50%",background:"#e87a7a",display:"inline-block"}}></span>相手の言葉</div>
+                <div style={{fontSize:13,color:"#ff9999",lineHeight:1.8}}>「{headline}」</div>
               </div>
               {lines.slice(1).map(function(line,j){
                 var t=line.trim();if(!t)return null;
-                if(/^1[\.．]/.test(t))return <div key={j} style={{borderRadius:8,overflow:"hidden"}}><div style={{background:"#3b82f6",padding:"4px 11px",fontSize:10,fontWeight:800,color:WHITE,display:"inline-block",borderRadius:"6px 6px 0 0"}}>① 共感</div><div style={{background:"rgba(59,130,246,0.07)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:"0 6px 6px 6px",padding:"9px 13px",fontSize:13,color:"#7aaed4",lineHeight:1.8}}>{t.replace(/^1[\.．]\s*/,"")}</div></div>;
-                if(/^2[\.．]/.test(t))return <div key={j} style={{borderRadius:8,overflow:"hidden"}}><div style={{background:GOLD,padding:"4px 11px",fontSize:10,fontWeight:800,color:DARK,display:"inline-block",borderRadius:"6px 6px 0 0"}}>② 転換</div><div style={{background:"rgba(245,166,35,0.07)",border:"1px solid rgba(245,166,35,0.2)",borderRadius:"0 6px 6px 6px",padding:"9px 13px",fontSize:13,color:"#c8a82a",lineHeight:1.8}}>{t.replace(/^2[\.．]\s*/,"")}</div></div>;
-                if(/^3[\.．]/.test(t))return <div key={j} style={{borderRadius:8,overflow:"hidden"}}><div style={{background:RED,padding:"4px 11px",fontSize:10,fontWeight:800,color:WHITE,display:"inline-block",borderRadius:"6px 6px 0 0"}}>③ クロージング</div><div style={{background:"rgba(232,0,29,0.07)",border:"1px solid rgba(232,0,29,0.2)",borderRadius:"0 6px 6px 6px",padding:"9px 13px",fontSize:13,color:"#e87a7a",lineHeight:1.8}}>{t.replace(/^3[\.．]\s*/,"")}</div></div>;
-                if(t.startsWith("→"))return <div key={j} style={{background:SURFACE2,borderLeft:"3px solid "+TEAL,borderRadius:"0 7px 7px 0",padding:"9px 13px",fontSize:13,color:"#c8d8f0",lineHeight:1.8}}>{t}</div>;
-                if(t.startsWith("「"))return <div key={j} style={{background:SURFACE2,borderLeft:"3px solid #7a96b8",borderRadius:"0 7px 7px 0",padding:"9px 13px",fontSize:13,color:"#c8d8f0",lineHeight:1.8,fontStyle:"italic"}}>{t}</div>;
-                if(/^✅|^※/.test(t))return <div key={j} style={{background:"rgba(62,200,138,0.06)",border:"1px solid rgba(62,200,138,0.18)",borderRadius:7,padding:"7px 12px",fontSize:12,color:"#3ec88a",lineHeight:1.8}}>{t}</div>;
-                return <div key={j} style={{fontSize:13,color:"#7a96b8",lineHeight:1.8,padding:"1px 0"}}>{t}</div>;
+                if(/^1[\.．]/.test(t))return <div key={j} style={{borderRadius:7,overflow:"hidden"}}><div style={{background:"#1e3a5f",padding:"3px 10px",fontSize:10,fontWeight:800,color:"#7aaed4",display:"inline-block",borderRadius:"5px 5px 0 0"}}>① 共感</div><div style={{background:"rgba(30,58,95,0.4)",border:"1px solid rgba(74,158,255,0.2)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#a8bdd4",lineHeight:1.8}}>{t.replace(/^1[\.．]\s*/,"")}</div></div>;
+                if(/^2[\.．]/.test(t))return <div key={j} style={{borderRadius:7,overflow:"hidden"}}><div style={{background:"#3a2a00",padding:"3px 10px",fontSize:10,fontWeight:800,color:GOLD,display:"inline-block",borderRadius:"5px 5px 0 0"}}>② 転換</div><div style={{background:"rgba(58,42,0,0.4)",border:"1px solid rgba(245,166,35,0.2)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#d4a84b",lineHeight:1.8}}>{t.replace(/^2[\.．]\s*/,"")}</div></div>;
+                if(/^3[\.．]/.test(t))return <div key={j} style={{borderRadius:7,overflow:"hidden"}}><div style={{background:RED_DARK,padding:"3px 10px",fontSize:10,fontWeight:800,color:WHITE,display:"inline-block",borderRadius:"5px 5px 0 0"}}>③ クロージング</div><div style={{background:"rgba(181,0,23,0.15)",border:"1px solid rgba(232,0,29,0.25)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#ff9999",lineHeight:1.8}}>{t.replace(/^3[\.．]\s*/,"")}</div></div>;
+                if(t.startsWith("→"))return <div key={j} style={{background:SURFACE2,borderLeft:"3px solid #666",borderRadius:"0 7px 7px 0",padding:"8px 12px",fontSize:13,color:"#b0b0b0",lineHeight:1.8}}>{t}</div>;
+                if(t.startsWith("「"))return <div key={j} style={{background:SURFACE2,borderLeft:"3px solid #555",borderRadius:"0 7px 7px 0",padding:"8px 12px",fontSize:13,color:"#e8e8e8",lineHeight:1.8,fontStyle:"italic"}}>{t}</div>;
+                if(/^✅|^※/.test(t))return <div key={j} style={{background:"rgba(245,166,35,0.07)",border:"1px solid rgba(245,166,35,0.18)",borderRadius:7,padding:"7px 12px",fontSize:12,color:GOLD,lineHeight:1.8}}>{t}</div>;
+                return <div key={j} style={{fontSize:13,color:"#888",lineHeight:1.8,padding:"1px 0"}}>{t}</div>;
               })}
             </div>}
           </div>
@@ -228,21 +261,20 @@ function FaqViewer({content}){
   });
   if(cur)pairs.push(cur);
   return(
-    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
       {pairs.map(function(p,i){
         var isOpen=open===i;
         return(
-          <div key={i} style={{borderRadius:12,overflow:"hidden",border:"1px solid "+(isOpen?"rgba(245,197,24,0.35)":"rgba(255,255,255,0.07)"),boxShadow:isOpen?"0 4px 16px rgba(0,0,0,0.4)":"none"}}>
-            <button onClick={function(){setOpen(isOpen?null:i);}} style={{width:"100%",background:isOpen?"linear-gradient(135deg,"+SURFACE+","+SURFACE2+")":BG,padding:"13px 18px",border:"none",cursor:"pointer",display:"flex",alignItems:"flex-start",gap:12,textAlign:"left",borderTop:isOpen?"3px solid "+GOLD:"3px solid transparent"}}>
-              <span style={{minWidth:26,height:26,borderRadius:6,background:isOpen?"rgba(245,197,24,0.15)":"rgba(255,255,255,0.04)",border:"1px solid "+(isOpen?"rgba(245,197,24,0.35)":"rgba(255,255,255,0.1)"),color:isOpen?GOLD:"#7a96b8",fontSize:11,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>Q</span>
-              <span style={{fontSize:13,fontWeight:700,color:isOpen?WHITE:"#a8bdd4",flex:1,lineHeight:1.7}}>{p.q}</span>
-              <span style={{color:isOpen?GOLD:"#7a96b8",fontSize:11,flexShrink:0,marginTop:2}}>{isOpen?"▲":"▼"}</span>
+          <div key={i} style={{borderRadius:12,overflow:"hidden",border:"1px solid "+(isOpen?GOLD+"55":"rgba(255,255,255,0.07)")}}>
+            <button onClick={function(){setOpen(isOpen?null:i);}} style={{width:"100%",background:isOpen?"linear-gradient(135deg,"+SURFACE+","+SURFACE2+")":BG,padding:"12px 16px",border:"none",cursor:"pointer",display:"flex",alignItems:"flex-start",gap:10,textAlign:"left",borderTop:isOpen?"3px solid "+GOLD:"3px solid transparent"}}>
+              <span style={{minWidth:24,height:24,borderRadius:5,background:isOpen?GOLD+"22":"rgba(255,255,255,0.05)",border:"1px solid "+(isOpen?GOLD+"44":"rgba(255,255,255,0.1)"),color:isOpen?GOLD:"#666",fontSize:10,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>Q</span>
+              <span style={{fontSize:13,fontWeight:700,color:isOpen?WHITE:"#b0b0b0",flex:1,lineHeight:1.7}}>{p.q}</span>
+              <span style={{color:isOpen?GOLD:"#555",fontSize:11,flexShrink:0,marginTop:2}}>{isOpen?"▲":"▼"}</span>
             </button>
-            {isOpen&&<div style={{padding:"14px 18px 14px 56px",background:SURFACE,borderTop:"1px solid rgba(245,197,24,0.12)"}}>
+            {isOpen&&<div style={{padding:"12px 16px 12px 50px",background:SURFACE,borderTop:"1px solid "+GOLD+"22"}}>
               {p.a.map(function(line,j){
                 var t=line.trim();if(!t)return null;
-                if(/^[①-③■]/.test(t))return <div key={j} style={{display:"flex",gap:7,padding:"2px 0"}}><span style={{color:TEAL_LIGHT,flexShrink:0}}>▶</span><span style={{fontSize:13,color:"#a8bdd4",lineHeight:1.85}}>{t}</span></div>;
-                return <div key={j} style={{fontSize:13,color:"#a8bdd4",lineHeight:1.85,padding:"1px 0"}}>{t}</div>;
+                return <div key={j} style={{fontSize:13,color:"#b0b0b0",lineHeight:1.85,padding:"1px 0"}}>{t}</div>;
               })}
             </div>}
           </div>
@@ -255,39 +287,67 @@ function FaqViewer({content}){
 function VersionHistory({versions,currentId,onRestore}){
   if(!versions.length)return null;
   return(
-    <div style={{marginBottom:16}}>
-      <div style={{fontSize:12,fontWeight:700,color:TEXT_MUTED,marginBottom:8}}>📁 バージョン履歴</div>
-      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-        {versions.map(function(v,i){return <button key={v.id} onClick={function(){onRestore(v);}} style={{padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:700,cursor:"pointer",border:"2px solid "+(v.id===currentId?RED:BORDER),background:v.id===currentId?RED_LIGHT:WHITE,color:v.id===currentId?RED:"#666"}}>v{i+1} — {v.timestamp}</button>;})}
+    <div style={{marginBottom:12}}>
+      <div style={{fontSize:11,fontWeight:700,color:"#888",marginBottom:6}}>📁 バージョン履歴</div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+        {versions.map(function(v,i){return <button key={v.id} onClick={function(){onRestore(v);}} style={{padding:"4px 12px",borderRadius:20,fontSize:11,fontWeight:700,cursor:"pointer",border:"2px solid "+(v.id===currentId?RED:BORDER),background:v.id===currentId?RED_LIGHT:WHITE,color:v.id===currentId?RED:"#666"}}>v{i+1} — {v.timestamp}</button>;})}
       </div>
     </div>
   );
 }
 
-function OutputViewer({output,form}){
+// ===== PER-SECTION FEEDBACK =====
+function SectionFeedback({label,value,onChange,onRegenerate,loading}){
+  return(
+    <div style={{background:SURFACE2,borderRadius:10,padding:"14px 16px",border:"1px solid rgba(255,255,255,0.07)"}}>
+      <div style={{fontSize:12,fontWeight:700,color:"#999",marginBottom:8}}>{label}</div>
+      <textarea value={value} onChange={function(e){onChange(e.target.value);}} placeholder="修正指示を入力..." rows={2} style={{width:"100%",padding:"9px 12px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",fontSize:12,color:"#c8c8c8",outline:"none",fontFamily:"inherit",resize:"none",boxSizing:"border-box"}}/>
+      <button onClick={onRegenerate} disabled={!value||loading} style={{marginTop:8,padding:"7px 18px",borderRadius:7,background:value&&!loading?RED:"#333",color:value&&!loading?WHITE:"#666",fontWeight:700,fontSize:12,border:"none",cursor:value&&!loading?"pointer":"not-allowed"}}>再生成</button>
+    </div>
+  );
+}
+
+function OutputViewer({output,form,onSave,saved,onRegenerate,regenLoading}){
   var[tab,setTab]=useState("script");
   var[copied,setCopied]=useState(false);
-  var tabs=[{id:"script",label:"📋 トークスクリプト",color:TEAL},{id:"objection",label:"🛡️ 切り返しトーク",color:RED},{id:"faq",label:"❓ FAQ",color:GOLD}];
+  var[fb,setFb]=useState({script:"",objection:"",faq:""});
+  var tabs=[{id:"script",label:"📋 トークスクリプト",color:RED},{id:"objection",label:"🛡️ 切り返しトーク",color:RED_DARK},{id:"faq",label:"❓ FAQ",color:GOLD}];
   function copyAll(){navigator.clipboard.writeText([output.talkScript,output.objectionHandling,output.faq].join("\n\n"+"=".repeat(50)+"\n\n"));setCopied(true);setTimeout(function(){setCopied(false);},2000);}
   function downloadWord(){
     var content=["【"+(form&&form.serviceName||"テレアポ")+"】トークスクリプト\n","=".repeat(60),"\n■ トークスクリプト\n",output.talkScript,"\n\n"+"=".repeat(60),"\n■ 切り返しトーク\n",output.objectionHandling,"\n\n"+"=".repeat(60),"\n■ FAQ\n",output.faq].join("\n");
     var blob=new Blob(["\ufeff"+content],{type:"application/msword;charset=utf-8"});
     var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(form&&form.serviceName||"teleapo")+"_スクリプト.doc";a.click();
   }
+  var sectionLabels={script:"受付トーク・担当者トーク",objection:"切り返しトーク",faq:"FAQ"};
   return(
-    <div style={{background:BG,borderRadius:16,overflow:"hidden",border:"1px solid rgba(255,255,255,0.08)",boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}>
-      <div style={{background:SURFACE,padding:"6px 6px 0",display:"flex",gap:4,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
-        {tabs.map(function(t){var active=tab===t.id;return <button key={t.id} onClick={function(){setTab(t.id);}} style={{flex:1,padding:"11px 8px",borderRadius:"8px 8px 0 0",border:"none",cursor:"pointer",background:active?BG:"transparent",color:active?t.color:"#7a96b8",fontWeight:active?800:500,fontSize:13,fontFamily:"inherit",borderBottom:active?"2px solid "+t.color:"2px solid transparent",transition:"all 0.2s"}}>{t.label}</button>;})}
-        <button onClick={copyAll} style={{padding:"8px 14px",margin:"4px 2px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:copied?"rgba(62,200,138,0.1)":"transparent",color:copied?"#3ec88a":"#7a96b8",fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",alignSelf:"center"}}>{copied?"✓ コピー済":"📋 全コピー"}</button>
+    <div style={{background:BG,borderRadius:16,overflow:"hidden",border:"1px solid rgba(255,255,255,0.1)",boxShadow:"0 8px 40px rgba(0,0,0,0.6)"}}>
+      {/* Input Summary */}
+      <div style={{padding:"16px 18px 0",background:SURFACE}}>
+        <InputSummary form={form}/>
       </div>
-      <div style={{padding:"22px 18px",minHeight:300,maxHeight:640,overflowY:"auto"}}>
+      {/* Tabs */}
+      <div style={{background:SURFACE,padding:"6px 6px 0",display:"flex",gap:3,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+        {tabs.map(function(t){var active=tab===t.id;return <button key={t.id} onClick={function(){setTab(t.id);}} style={{flex:1,padding:"10px 6px",borderRadius:"7px 7px 0 0",border:"none",cursor:"pointer",background:active?BG:"transparent",color:active?t.color:"#555",fontWeight:active?800:500,fontSize:12,fontFamily:"inherit",borderBottom:active?"2px solid "+t.color:"2px solid transparent",transition:"all 0.2s"}}>{t.label}</button>;})}
+        <button onClick={copyAll} style={{padding:"7px 12px",margin:"4px 2px",borderRadius:7,border:"1px solid rgba(255,255,255,0.08)",background:copied?"rgba(245,166,35,0.1)":"transparent",color:copied?GOLD:"#555",fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",alignSelf:"center"}}>{copied?"✓ コピー済":"📋 全コピー"}</button>
+      </div>
+      {/* Content */}
+      <div style={{padding:"18px 16px",minHeight:280,maxHeight:580,overflowY:"auto"}}>
         {tab==="script"&&<ScriptViewer content={output.talkScript}/>}
         {tab==="objection"&&<ObjectionViewer content={output.objectionHandling}/>}
         {tab==="faq"&&<FaqViewer content={output.faq}/>}
       </div>
-      <div style={{padding:"14px 18px",borderTop:"1px solid rgba(255,255,255,0.06)",background:SURFACE,display:"flex",gap:10}}>
-        <button onClick={downloadWord} style={{flex:1,padding:"12px",borderRadius:10,background:"linear-gradient(135deg,#2563eb,#1d4ed8)",color:WHITE,fontWeight:800,fontSize:13,border:"none",cursor:"pointer",boxShadow:"0 4px 16px rgba(37,99,235,0.3)"}}>📄 Wordでダウンロード</button>
-        <button onClick={copyAll} style={{flex:1,padding:"12px",borderRadius:10,background:copied?"rgba(62,200,138,0.12)":"rgba(255,255,255,0.04)",color:copied?"#3ec88a":"#a8bdd4",fontWeight:800,fontSize:13,border:"1px solid "+(copied?"rgba(62,200,138,0.3)":"rgba(255,255,255,0.1)"),cursor:"pointer"}}>{copied?"✓ コピー済み":"📋 全文コピー"}</button>
+      {/* Per-section feedback */}
+      <div style={{padding:"14px 16px",background:SURFACE,borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+        <div style={{fontSize:12,fontWeight:700,color:"#777",marginBottom:10}}>🔄 セクション別 ブラッシュアップ</div>
+        <SectionFeedback label={sectionLabels[tab]} value={fb[tab]} onChange={function(v){setFb(function(f){return Object.assign({},f,{[tab]:v});});}} onRegenerate={function(){onRegenerate(tab,fb[tab]);setFb(function(f){return Object.assign({},f,{[tab]:""});});}} loading={regenLoading}/>
+      </div>
+      {/* Footer */}
+      <div style={{padding:"14px 16px",background:SURFACE,borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:8}}>
+        <button onClick={onSave} style={{flex:1,padding:"11px",borderRadius:9,background:saved?"rgba(245,166,35,0.15)":RED,color:saved?GOLD:WHITE,fontWeight:800,fontSize:12,border:saved?"1px solid "+GOLD+"44":"none",cursor:"pointer",boxShadow:saved?"none":"0 3px 12px rgba(232,0,29,0.3)"}}>
+          {saved?"✓ 保存済み":"💾 結果を保存"}
+        </button>
+        <button onClick={downloadWord} style={{flex:1,padding:"11px",borderRadius:9,background:"rgba(255,255,255,0.05)",color:"#b0b0b0",fontWeight:700,fontSize:12,border:"1px solid rgba(255,255,255,0.1)",cursor:"pointer"}}>📄 Wordダウンロード</button>
+        <button onClick={copyAll} style={{flex:1,padding:"11px",borderRadius:9,background:copied?"rgba(245,166,35,0.1)":"rgba(255,255,255,0.05)",color:copied?GOLD:"#b0b0b0",fontWeight:700,fontSize:12,border:"1px solid "+(copied?GOLD+"33":"rgba(255,255,255,0.1)"),cursor:"pointer"}}>{copied?"✓ コピー済":"📋 全文コピー"}</button>
       </div>
     </div>
   );
@@ -296,10 +356,11 @@ function OutputViewer({output,form}){
 export default function CanviTool(){
   var[step,setStep]=useState(1);
   var[loading,setLoading]=useState(false);
+  var[regenLoading,setRegenLoading]=useState(false);
   var[versions,setVersions]=useState([]);
   var[currentId,setCurrentId]=useState(null);
-  var[feedback,setFeedback]=useState("");
   var[output,setOutput]=useState(null);
+  var[saved,setSaved]=useState(false);
   var[overviewMode,setOverviewMode]=useState("text");
   var[overviewUploaded,setOverviewUploaded]=useState(false);
   var[overviewFileName,setOverviewFileName]=useState("");
@@ -340,7 +401,7 @@ export default function CanviTool(){
   }
 
   function generate(fb){
-    setLoading(true);
+    setLoading(true);setSaved(false);
     var types=["script","objection","faq"];
     var results={};
     var calls=types.map(function(type){
@@ -352,17 +413,38 @@ export default function CanviTool(){
       var parsed={talkScript:results["script"]||"",objectionHandling:results["objection"]||"",faq:results["faq"]||""};
       var ver={id:Date.now(),timestamp:new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}),data:parsed};
       setVersions(function(v){return [...v,ver];});
-      setCurrentId(ver.id);setOutput(parsed);setFeedback("");setLoading(false);
-      if(user){addDoc(collection(db,"generations"),{uid:user.uid,email:user.email,companyName:form.companyName,serviceName:form.serviceName,callPattern:form.callPattern,output:parsed,createdAt:serverTimestamp()}).catch(function(){});}
+      setCurrentId(ver.id);setOutput(parsed);setLoading(false);
     }).catch(function(){alert("生成に失敗しました。APIキーを確認してください。");setLoading(false);});
   }
 
-  function downloadTxt(){
-    if(!output)return;
-    var a=document.createElement("a");
-    a.href=URL.createObjectURL(new Blob([[output.talkScript,output.objectionHandling,output.faq].join("\n\n"+"=".repeat(60)+"\n\n")],{type:"text/plain;charset=utf-8"}));
-    a.download=(form.serviceName||"teleapo")+"_スクリプト_v"+versions.length+".txt";
-    a.click();
+  function regenerateSection(section,fb){
+    setRegenLoading(true);
+    var typeMap={script:"script",objection:"objection",faq:"faq"};
+    fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-opus-4-5",max_tokens:3000,messages:[{role:"user",content:buildPrompt(typeMap[section],fb)}]})})
+    .then(function(res){return res.json();})
+    .then(function(data){
+      var text=data.content?data.content.map(function(c){return c.text||"";}).join(""):"";
+      setOutput(function(o){
+        var n=Object.assign({},o);
+        if(section==="script")n.talkScript=text;
+        if(section==="objection")n.objectionHandling=text;
+        if(section==="faq")n.faq=text;
+        return n;
+      });
+      setSaved(false);setRegenLoading(false);
+    }).catch(function(){setRegenLoading(false);});
+  }
+
+  function saveResult(){
+    if(!output||!user)return;
+    addDoc(collection(db,"generations"),{uid:user.uid,email:user.email,companyName:form.companyName,serviceName:form.serviceName,callPattern:form.callPattern,output:output,createdAt:serverTimestamp()})
+    .then(function(){setSaved(true);})
+    .catch(function(){alert("保存に失敗しました。");});
+  }
+
+  function resetToTop(){
+    setStep(1);setOutput(null);setVersions([]);setCurrentId(null);setSaved(false);
+    setForm({companyName:"",serviceName:"",serviceOverview:"",serviceUrl:"",talkScript:"",voiceNote:"",callPattern:"",industries:[],employeeRange:[],departments:[],area:"",contactRole:"",goal:"",appealPoints:"",differentiation:"",competitors:"",rcptObjections:"",contactObjections:"",situationNotes:""});
   }
 
   return(
@@ -406,22 +488,18 @@ export default function CanviTool(){
           {!output&&!loading&&(<Card><H sub="入力内容をもとにAIがトーク素材を設計します">✨ 生成準備完了</H><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:28}}>{[["📋 PART1","受付突破トーク（パターン別+ゴールデンルール）"],["📋 PART2","担当者トーク（HOOK→PAIN→VALUE→CLOSE→CONFIRM）"],["🛡️ PART3","切り返しトーク10選（受付5個+担当者5個）"],["❓ PART4","FAQ 10選"]].map(function(item,i){return <div key={i} style={{background:GRAY_LIGHT,borderRadius:10,padding:"14px 16px",border:"1px solid "+BORDER}}><div style={{fontWeight:800,fontSize:13,color:DARK,marginBottom:4}}>{item[0]}</div><div style={{fontSize:12,color:TEXT_MUTED}}>{item[1]}</div></div>;})}</div><button onClick={function(){generate();}} style={{width:"100%",padding:"18px",borderRadius:12,background:"linear-gradient(135deg,"+RED+","+RED_DARK+")",color:WHITE,fontWeight:900,fontSize:17,border:"none",cursor:"pointer",boxShadow:"0 6px 24px rgba(232,0,29,0.35)",letterSpacing:"0.05em"}}>🚀 トーク素材を生成する</button></Card>)}
           {loading&&<Card style={{textAlign:"center",padding:"70px 32px"}}><div style={{fontSize:50,marginBottom:16}}>⚡</div><div style={{fontSize:18,fontWeight:900,color:DARK,marginBottom:8}}>AIが設計中...</div><div style={{fontSize:13,color:TEXT_MUTED}}>3つのセクションを並列生成中（60〜90秒程度）</div></Card>}
           {output&&!loading&&(<div>
-            <VersionHistory versions={versions} currentId={currentId} onRestore={function(v){setOutput(v.data);setCurrentId(v.id);}}/>
-            <OutputViewer output={output} form={form}/>
-            <Card style={{background:GRAY_LIGHT,marginTop:16}}>
-              <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>🔄 フィードバック・ブラッシュアップ</div>
-              <Inp value={feedback} onChange={setFeedback} placeholder='例：「切り返しをより共感的に」「FAQに価格の質問を追加」' multi={true} rows={3}/>
-              <button onClick={function(){generate(feedback);}} disabled={!feedback} style={{marginTop:12,padding:"11px 28px",borderRadius:10,background:feedback?DARK:"#ddd",color:WHITE,fontWeight:700,fontSize:14,border:"none",cursor:feedback?"pointer":"not-allowed"}}>再生成する</button>
-            </Card>
-            <div style={{display:"flex",gap:12,marginTop:12}}>
-              <button onClick={downloadTxt} style={{flex:1,padding:"15px",borderRadius:12,background:"linear-gradient(135deg,"+RED+","+RED_DARK+")",color:WHITE,fontWeight:800,fontSize:14,border:"none",cursor:"pointer",boxShadow:"0 4px 16px rgba(232,0,29,0.25)"}}>📥 テキストでダウンロード</button>
-              <button onClick={function(){window.print();}} style={{flex:1,padding:"15px",borderRadius:12,background:DARK,color:WHITE,fontWeight:800,fontSize:14,border:"none",cursor:"pointer"}}>🖨️ 印刷 / PDF保存</button>
+            <VersionHistory versions={versions} currentId={currentId} onRestore={function(v){setOutput(v.data);setCurrentId(v.id);setSaved(false);}}/>
+            <OutputViewer output={output} form={form} onSave={saveResult} saved={saved} onRegenerate={regenerateSection} regenLoading={regenLoading}/>
+            {/* Reset / back to top */}
+            <div style={{marginTop:16,textAlign:"center"}}>
+              <button onClick={resetToTop} style={{padding:"12px 32px",borderRadius:10,border:"2px solid "+BORDER,background:WHITE,color:TEXT_MUTED,fontWeight:700,fontSize:13,cursor:"pointer"}}>🔄 全キャンして最初に戻る</button>
             </div>
           </div>)}
         </div>)}
 
         <div style={{display:"flex",justifyContent:"space-between",marginTop:28}}>
-          {step>1&&<button onClick={function(){setStep(function(s){return s-1;});}} style={{padding:"13px 30px",borderRadius:10,border:"2px solid "+BORDER,background:WHITE,color:TEXT,fontWeight:700,fontSize:14,cursor:"pointer"}}>← 戻る</button>}
+          {step>1&&step<6&&<button onClick={function(){setStep(function(s){return s-1;});}} style={{padding:"13px 30px",borderRadius:10,border:"2px solid "+BORDER,background:WHITE,color:TEXT,fontWeight:700,fontSize:14,cursor:"pointer"}}>← 戻る</button>}
+          {step===6&&output&&<button onClick={function(){setStep(5);}} style={{padding:"13px 30px",borderRadius:10,border:"2px solid "+BORDER,background:WHITE,color:TEXT,fontWeight:700,fontSize:14,cursor:"pointer"}}>← 戻る</button>}
           {step<6&&<button onClick={function(){setStep(function(s){return s+1;});}} disabled={!canNext()} style={{padding:"13px 36px",borderRadius:10,border:"none",background:canNext()?"linear-gradient(135deg,"+RED+","+RED_DARK+")":"#ddd",color:WHITE,fontWeight:800,fontSize:14,cursor:canNext()?"pointer":"not-allowed",marginLeft:"auto",boxShadow:canNext()?"0 4px 16px rgba(232,0,29,0.25)":"none"}}>次へ →</button>}
         </div>
       </div>
