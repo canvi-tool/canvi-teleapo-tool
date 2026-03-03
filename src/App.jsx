@@ -85,16 +85,30 @@ function PdfDropZone({onText,uploaded,setUploaded,fileName,setFileName}){
   var[dragging,setDragging]=useState(false);
   var[loading,setLoading]=useState(false);
   function processFile(file){
-    if(!file||file.type!=="application/pdf")return;
-    setFileName(file.name);setUploaded(true);setLoading(true);
-    var reader=new FileReader();
-    reader.onload=function(ev){
-      var base64=ev.target.result.split(",")[1];
-      fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-opus-4-5",max_tokens:2000,messages:[{role:"user",content:[{type:"document",source:{type:"base64",media_type:"application/pdf",data:base64}},{type:"text",text:"このドキュメントの内容を日本語でそのまま抽出してください。"}]}]})})
-      .then(function(res){return res.json();}).then(function(data){onText(data.content?data.content.map(function(c){return c.text||"";}).join(""):"");setUploaded(true);setLoading(false);}).catch(function(){setLoading(false);});
+  if(!file||file.type!=="application/pdf")return;
+  setFileName(file.name);setUploaded(true);setLoading(true);
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var typedarray=new Uint8Array(ev.target.result);
+    var script=document.createElement("script");
+    script.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    script.onload=function(){
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      window.pdfjsLib.getDocument(typedarray).promise.then(function(pdf){
+        var pages=[];
+        for(var i=1;i<=pdf.numPages;i++){
+          pages.push(pdf.getPage(i).then(function(page){return page.getTextContent();}));
+        }
+        Promise.all(pages).then(function(contents){
+          var text=contents.map(function(c){return c.items.map(function(i){return i.str;}).join(" ");}).join("\n");
+          onText(text);setUploaded(true);setLoading(false);
+        });
+      }).catch(function(){setLoading(false);});
     };
-    reader.readAsDataURL(file);
-  }
+    document.head.appendChild(script);
+  };
+  reader.readAsArrayBuffer(file);
+}
   var borderColor=uploaded?"#22c55e":dragging?RED:BORDER;
   var bg=uploaded?"#f0fdf4":dragging?RED_LIGHT:GRAY_LIGHT;
   return(
