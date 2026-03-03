@@ -239,11 +239,30 @@ function VersionHistory({versions,currentId,onRestore}){
   );
 }
 
-function OutputViewer({output}){
+function OutputViewer({output,form}){
   var[tab,setTab]=useState("script");
   var[copied,setCopied]=useState(false);
   var tabs=[{id:"script",label:"📝 トークスクリプト"},{id:"objection",label:"🛡️ 切り返しトーク"},{id:"faq",label:"❓ FAQ"}];
   function copyAll(){navigator.clipboard.writeText([output.talkScript,output.objectionHandling,output.faq].join("\n\n"+"=".repeat(50)+"\n\n"));setCopied(true);setTimeout(function(){setCopied(false);},2000);}
+  function downloadWord(){
+    var content=[
+      "【"+( form&&form.serviceName||"テレアポ")+"】トークスクリプト\n",
+      "=".repeat(60),
+      "\n■ トークスクリプト\n",
+      output.talkScript,
+      "\n\n"+"=".repeat(60),
+      "\n■ 切り返しトーク\n",
+      output.objectionHandling,
+      "\n\n"+"=".repeat(60),
+      "\n■ FAQ\n",
+      output.faq
+    ].join("\n");
+    var blob=new Blob(["\ufeff"+content],{type:"application/msword;charset=utf-8"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=(form&&form.serviceName||"teleapo")+"_スクリプト.doc";
+    a.click();
+  }
   return(
     <div style={{background:WHITE,borderRadius:16,border:"1px solid "+BORDER,overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,0.08)"}}>
       <div style={{display:"flex",borderBottom:"2px solid "+GRAY_LIGHT,background:WHITE,padding:"0 20px"}}>
@@ -254,6 +273,10 @@ function OutputViewer({output}){
         {tab==="script"&&<ScriptViewer content={output.talkScript}/>}
         {tab==="objection"&&<ObjectionViewer content={output.objectionHandling}/>}
         {tab==="faq"&&<FaqViewer content={output.faq}/>}
+      </div>
+      <div style={{padding:"16px 20px",borderTop:"2px solid "+GRAY_LIGHT,display:"flex",gap:10}}>
+        <button onClick={downloadWord} style={{flex:1,padding:"12px",borderRadius:10,background:"linear-gradient(135deg,#2563eb,#1d4ed8)",color:WHITE,fontWeight:800,fontSize:13,border:"none",cursor:"pointer",boxShadow:"0 4px 16px rgba(37,99,235,0.25)"}}>📄 Wordでダウンロード</button>
+        <button onClick={copyAll} style={{flex:1,padding:"12px",borderRadius:10,background:copied?"#f0fdf4":GRAY_LIGHT,color:copied?"#22c55e":TEXT,fontWeight:800,fontSize:13,border:"2px solid "+(copied?"#22c55e":BORDER),cursor:"pointer"}}>{copied?"✓ コピー済み":"📋 全文コピー"}</button>
       </div>
     </div>
   );
