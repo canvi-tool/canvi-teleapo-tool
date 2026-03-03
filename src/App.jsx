@@ -279,7 +279,7 @@ export default function CanviTool(){
   function set(k,v){setForm(function(f){return Object.assign({},f,{[k]:v});});}
 
   function canNext(){
-    if(step===1)return form.companyName&&form.serviceName&&form.serviceOverview;
+    if(step===1)return !!(form.companyName&&form.serviceName&&form.serviceOverview);
     if(step===2)return form.callPattern;
     if(step===3)return form.industries.length>0&&form.area;
     if(step===4)return form.appealPoints;
