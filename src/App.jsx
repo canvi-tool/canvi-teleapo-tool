@@ -85,17 +85,17 @@ function PdfDropZone({onText,uploaded,setUploaded,fileName,setFileName}){
   var[dragging,setDragging]=useState(false);
   var[loading,setLoading]=useState(false);
   function processFile(file){
-  if(!file||file.type!=="application/pdf")return;
-  if(file.size>4500000){alert("PDFのファイルサイズは4.5MB以下にしてください。");return;}
-  setFileName(file.name);setUploaded(true);setLoading(true);
-  var reader=new FileReader();
-  reader.onload=function(ev){
-    var base64=ev.target.result.split(",")[1];
-    fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-opus-4-5",max_tokens:2000,messages:[{role:"user",content:[{type:"document",source:{type:"base64",media_type:"application/pdf",data:base64}},{type:"text",text:"このドキュメントの内容を日本語でそのまま抽出してください。"}]}]})})
-    .then(function(res){return res.json();}).then(function(data){onText(data.content?data.content.map(function(c){return c.text||"";}).join(""):"");setUploaded(true);setLoading(false);}).catch(function(){setLoading(false);});
-  };
-  reader.readAsDataURL(file);
-}
+    if(!file||file.type!=="application/pdf")return;
+    if(file.size>4500000){alert("PDFのファイルサイズは4.5MB以下にしてください。");return;}
+    setFileName(file.name);setUploaded(true);setLoading(true);
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var base64=ev.target.result.split(",")[1];
+      fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-opus-4-5",max_tokens:2000,messages:[{role:"user",content:[{type:"document",source:{type:"base64",media_type:"application/pdf",data:base64}},{type:"text",text:"このドキュメントの内容を日本語でそのまま抽出してください。"}]}]})})
+      .then(function(res){return res.json();}).then(function(data){onText(data.content?data.content.map(function(c){return c.text||"";}).join(""):"");setUploaded(true);setLoading(false);}).catch(function(){setLoading(false);});
+    };
+    reader.readAsDataURL(file);
+  }
   var borderColor=uploaded?"#22c55e":dragging?RED:BORDER;
   var bg=uploaded?"#f0fdf4":dragging?RED_LIGHT:GRAY_LIGHT;
   return(
@@ -144,8 +144,7 @@ function ScriptViewer({content}){
             {isOpen&&<div style={{background:WHITE,padding:"16px 20px",display:"flex",flexDirection:"column",gap:8}}>
               {lines.slice(1).map(function(line,j){
                 if(/💡|ポイント/.test(line))return <div key={j} style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:10,padding:"10px 14px",fontSize:12,color:"#92400e",lineHeight:1.8}}>{line}</div>;
-                if(/具体セリフ|セリフ：/.test(line))return <div key={j} style={{background:DARK,borderRadius:10,padding:"12px 16px",fontSize:13,color:WHITE,lineHeight:1.8,fontWeight:600}}>{line}</div>;
-                if(line.startsWith("「")&&line.endsWith("」"))return <div key={j} style={{background:"#1a1a2e",borderLeft:"4px solid "+accent,borderRadius:"0 10px 10px 0",padding:"12px 16px",fontSize:13,color:"#e2e8f0",lineHeight:1.8,fontStyle:"italic"}}>{line}</div>;
+                if(line.startsWith("「")&&line.endsWith("」"))return <div key={j} style={{background:"#1a1a2e",borderLeft:"4px solid "+accent,borderRadius:"0 10px 10px 0",padding:"12px 16px",fontSize:13,color:"#e2e8f0",lineHeight:1.8}}>{line}</div>;
                 if(line.includes("→"))return <div key={j} style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#166534",lineHeight:1.8}}>{line}</div>;
                 if(/^\s*[①-⑩]|^\s*\d+[\.\)]|^[-・]/.test(line))return <div key={j} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"4px 0"}}><span style={{color:accent,fontWeight:700,flexShrink:0}}>▶</span><span style={{fontSize:13,color:TEXT,lineHeight:1.8}}>{line.replace(/^[-・①-⑩\d\.\)]\s*/,"")}</span></div>;
                 if(/❌/.test(line))return <div key={j} style={{background:"#fff0f2",border:"2px solid "+RED+"44",borderRadius:10,padding:"10px 14px",fontSize:13,color:RED,fontWeight:700,lineHeight:1.8}}>{line}</div>;
@@ -170,7 +169,6 @@ function ObjectionViewer({content}){
         var lines=block.split("\n").filter(function(l){return l.trim();});
         var headline=lines[0].replace("❌","").trim();
         var isOpen=open[i]!==false;
-        var stepColors={"1":"#2563eb","2":GOLD,"3":RED};
         return(
           <div key={i} style={{borderRadius:14,overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",border:"1px solid #fee2e2"}}>
             <button onClick={function(){setOpen(function(o){var n=Object.assign({},o);n[i]=!isOpen;return n;});}} style={{width:"100%",background:"linear-gradient(135deg,#dc2626,#b91c1c)",padding:"14px 20px",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
@@ -178,16 +176,12 @@ function ObjectionViewer({content}){
               <span style={{fontWeight:800,fontSize:13,color:WHITE,flex:1,textAlign:"left"}}>{headline}</span>
               <span style={{color:WHITE,fontSize:12,opacity:0.8}}>{isOpen?"▲":"▼"}</span>
             </button>
-            {isOpen&&<div style={{background:WHITE,padding:"16px 20px",display:"flex",flexDirection:"column",gap:10}}>
+            {isOpen&&<div style={{background:WHITE,padding:"16px 20px",display:"flex",flexDirection:"column",gap:8}}>
               {lines.slice(1).map(function(line,j){
-                var stepMatch=line.match(/^(\d+)[\.．]/);
-                var stepColor=stepMatch?stepColors[stepMatch[1]]:"#555";
-                if(stepMatch)return(
-                  <div key={j} style={{borderRadius:10,overflow:"hidden",border:"1px solid "+stepColor+"33"}}>
-                    <div style={{background:stepColor,padding:"6px 14px",fontSize:11,fontWeight:800,color:WHITE}}>{["","① 共感","② 転換","③ クロージング"][parseInt(stepMatch[1])]||line}</div>
-                  </div>
-                );
-                if(line.startsWith("「"))return <div key={j} style={{background:"#1a1a2e",borderRadius:10,padding:"12px 16px",fontSize:13,color:"#e2e8f0",lineHeight:1.8,marginTop:-8,fontStyle:"italic"}}>{line}</div>;
+                if(/^1\.|^1．|^①/.test(line))return <div key={j} style={{background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#1e40af",fontWeight:700,lineHeight:1.8}}>{line}</div>;
+                if(/^2\.|^2．|^②/.test(line))return <div key={j} style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#92400e",fontWeight:700,lineHeight:1.8}}>{line}</div>;
+                if(/^3\.|^3．|^③/.test(line))return <div key={j} style={{background:"#fff0f2",border:"1px solid "+RED+"44",borderRadius:10,padding:"10px 14px",fontSize:13,color:RED,fontWeight:700,lineHeight:1.8}}>{line}</div>;
+                if(line.startsWith("「"))return <div key={j} style={{background:"#1a1a2e",borderRadius:10,padding:"12px 16px",fontSize:13,color:"#e2e8f0",lineHeight:1.8,fontStyle:"italic"}}>{line}</div>;
                 if(line.includes("→"))return <div key={j} style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#166534",lineHeight:1.8}}>{line}</div>;
                 return <div key={j} style={{fontSize:13,color:"#555",lineHeight:1.8}}>{line}</div>;
               })}
@@ -227,6 +221,7 @@ function FaqViewer({content}){
     </div>
   );
 }
+
 function VersionHistory({versions,currentId,onRestore}){
   if(!versions.length)return null;
   return(
@@ -246,7 +241,7 @@ function OutputViewer({output,form}){
   function copyAll(){navigator.clipboard.writeText([output.talkScript,output.objectionHandling,output.faq].join("\n\n"+"=".repeat(50)+"\n\n"));setCopied(true);setTimeout(function(){setCopied(false);},2000);}
   function downloadWord(){
     var content=[
-      "【"+( form&&form.serviceName||"テレアポ")+"】トークスクリプト\n",
+      "【"+(form&&form.serviceName||"テレアポ")+"】トークスクリプト\n",
       "=".repeat(60),
       "\n■ トークスクリプト\n",
       output.talkScript,
@@ -322,7 +317,7 @@ export default function CanviTool(){
 
   function buildPrompt(fb){
     var p=CALL_PATTERNS.find(function(x){return x.id===form.callPattern;});
-    return "あなたはThe Model型テレアポのトップエキスパートです。以下の情報をもとにアポインターが実際に使えるトーク素材を作成してください。\n\n会社名:"+form.companyName+" / サービス名:"+form.serviceName+"\n概要:"+form.serviceOverview+"\nURL:"+(form.serviceUrl||"なし")+" / 既存スクリプト参考:"+(form.talkScript||"なし")+"\n架電パターン:"+(p?p.label:"")+"("+(p?p.desc:"")+")"+"\n業界:"+form.industries.join("、")+" / 従業員数:"+(form.employeeRange.join("、")||"指定なし")+"\n担当部署:"+(form.departments.join("、")||"指定なし")+" / エリア:"+form.area+" / 役職:"+(form.contactRole||"指定なし")+"\n目標:"+(form.goal||"アポイント獲得")+" / 訴求:"+form.appealPoints+"\n差別化:"+(form.differentiation||"なし")+" / 競合:"+(form.competitors||"なし")+"\n受付断り:"+(form.rcptObjections||"なし")+" / 担当者断り:"+(form.contactObjections||"なし")+"\nその他:"+(form.situationNotes||"なし")+"\n"+(fb?"修正指示:"+fb:"")+"\n\n出力はJSON形式のみ。前置き・後書き不要。\n\ntalkScript構成:\n■ PART1 受付突破（ナチュラル型）\nSTEP A: 最初の一言（具体セリフ＋💡ポイント）\nSTEP B: 受付の返答パターン別3〜5パターン（各:❌パターン名→具体セリフ→💡ポイント）\n🏆 ゴールデンルール（箇条書き）\n■ PART2 担当者トーク\nSTEP 02 [HOOK] / STEP 03 [PAIN] / STEP 04 [VALUE] / STEP 05 [CLOSE] / STEP 06 [CONFIRM]（各STEP: 具体的セリフ＋💡ポイント）\n\nobjectionHandling構成:受付用5個＋担当者用5個、計10個。各: ❌「断り文句」の見出し＋1.共感→セリフ 2.転換→セリフ 3.クロージング→セリフ\n\nfaq構成: Q1〜Q10の10個\n\n{\"talkScript\":\"...\",\"objectionHandling\":\"...\",\"faq\":\"...\"}";
+    return "あなたはThe Model型テレアポのトップエキスパートです。以下の情報をもとにアポインターが実際に使えるトーク素材を作成してください。\n\n会社名:"+form.companyName+" / サービス名:"+form.serviceName+"\n概要:"+form.serviceOverview+"\nURL:"+(form.serviceUrl||"なし")+" / 既存スクリプト参考:"+(form.talkScript||"なし")+"\n架電パターン:"+(p?p.label:"")+"("+(p?p.desc:"")+")"+"\n業界:"+form.industries.join("、")+" / 従業員数:"+(form.employeeRange.join("、")||"指定なし")+"\n担当部署:"+(form.departments.join("、")||"指定なし")+" / エリア:"+form.area+" / 役職:"+(form.contactRole||"指定なし")+"\n目標:"+(form.goal||"アポイント獲得")+" / 訴求:"+form.appealPoints+"\n差別化:"+(form.differentiation||"なし")+" / 競合:"+(form.competitors||"なし")+"\n受付断り:"+(form.rcptObjections||"なし")+" / 担当者断り:"+(form.contactObjections||"なし")+"\nその他:"+(form.situationNotes||"なし")+"\n"+(fb?"修正指示:"+fb:"")+"\n\n【重要】出力はJSON形式のみ。Markdownのコードブロック(```)は絶対に使わない。前置き・後書き不要。文字列内の改行は\\nで表現すること。\n\ntalkScript構成:\n■ PART1 受付突破（ナチュラル型）\nSTEP A: 最初の一言（具体セリフ＋💡ポイント）\nSTEP B: 受付の返答パターン別3〜5パターン（各:❌パターン名→具体セリフ→💡ポイント）\n🏆 ゴールデンルール（箇条書き）\n■ PART2 担当者トーク\nSTEP 02 [HOOK] / STEP 03 [PAIN] / STEP 04 [VALUE] / STEP 05 [CLOSE] / STEP 06 [CONFIRM]（各STEP: 具体的セリフ＋💡ポイント）\n\nobjectionHandling構成:受付用5個＋担当者用5個、計10個。各: ❌「断り文句」の見出し＋1.共感→セリフ 2.転換→セリフ 3.クロージング→セリフ\n\nfaq構成: Q1〜Q10の10個\n\n必ず以下の形式で出力:{\"talkScript\":\"...\",\"objectionHandling\":\"...\",\"faq\":\"...\"}";
   }
 
   function generate(fb){
@@ -331,7 +326,19 @@ export default function CanviTool(){
     .then(function(res){return res.json();}).then(function(data){
       var text=data.content?data.content.map(function(c){return c.text||"";}).join(""):"";
       var parsed;
-      try{parsed=JSON.parse(text.replace(/```json|```/g,"").trim());}catch(e){parsed={talkScript:text,objectionHandling:"",faq:""};}
+      try{
+        var clean=text.replace(/^```json\s*/,"").replace(/^```\s*/,"").replace(/```\s*$/,"").trim();
+        parsed=JSON.parse(clean);
+      }catch(e){
+        try{
+          var start=text.indexOf("{");
+          var end=text.lastIndexOf("}");
+          if(start!==-1&&end!==-1){parsed=JSON.parse(text.slice(start,end+1));}
+          else{throw new Error("no json");}
+        }catch(e2){
+          parsed={talkScript:text,objectionHandling:"",faq:""};
+        }
+      }
       var ver={id:Date.now(),timestamp:new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}),data:parsed};
       setVersions(function(v){return [...v,ver];});
       setCurrentId(ver.id);setOutput(parsed);setFeedback("");setLoading(false);
