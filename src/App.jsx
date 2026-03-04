@@ -655,11 +655,11 @@ var[genProgress,setGenProgress]=useState({script:0,objection:0,faq:0});
 var[genStatus,setGenStatus]=useState({script:"waiting",objection:"waiting",faq:"waiting"});
 var[currentMsg,setCurrentMsg]=useState(0);
 var messages=[
-"The Model型のIS戦略フレームワークを分析中...",
+"The Model型の戦略フレームワークを分析中...",
 "受付突破の最適パターンを設計中...",
 "担当者トークのHOOK→PAIN→VALUEフローを構築中...",
 "切り返しトークを最適化中...",
-"よくある質問を生成中...",
+"よくある質問への完璧な回答を準備中...",
 "最終調整とブラッシュアップ中..."
 ];
 useEffect(function(){
@@ -796,9 +796,9 @@ function completeProgress(type){
   });
 }
 
-setTimeout(function(){ startProgress('script', 70); }, 200);
-setTimeout(function(){ startProgress('objection', 40); }, 500);
-setTimeout(function(){ startProgress('faq', 20); }, 800);
+setTimeout(function(){ startProgress('script', 25); }, 200);
+setTimeout(function(){ startProgress('objection', 20); }, 500);
+setTimeout(function(){ startProgress('faq', 15); }, 800);
 
 var calls=["script","objection","faq"].map(function(type){
   return fetch("/api/generate",{
@@ -928,20 +928,20 @@ return(
 </div>
 <div style={{display:"flex",alignItems:"center",gap:12}}>
 {user?<>
-<span style={{color:"#aaa",fontSize:11}}>{user.email}</span>
+<span style={{color:WHITE,fontSize:11}}>{user.email}</span>
 <a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:RED,color:WHITE,fontSize:11,fontWeight:700,textDecoration:"none"}}>管理画面</a>
 <button onClick={function(){signOut(auth);}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #444",background:"transparent",color:"#ccc",fontSize:11,fontWeight:700,cursor:"pointer"}}>ログアウト</button>
 </>:<a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:"transparent",border:"1px solid #444",color:"#ccc",fontSize:11,fontWeight:700,textDecoration:"none"}}>管理画面</a>}
-<div style={{color:"#555",fontSize:11,fontWeight:600}}>by 株式会社Canvi</div>
+<div style={{color:WHITE,fontSize:11,fontWeight:600}}>by 株式会社Canvi</div>
 </div>
 </div>
   <div style={{background:"linear-gradient(135deg,"+DARK+" 0%,#1a0005 50%,"+DARK+" 100%)",padding:"24px 40px",borderBottom:"3px solid "+RED}}>
     <div style={{maxWidth:860,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
       <div>
-        <div style={{fontSize:11,fontWeight:700,color:RED,letterSpacing:"0.15em",marginBottom:4}}>AI POWERED TELEAPO TOOL</div>
-        <div style={{fontSize:22,fontWeight:900,color:WHITE,lineHeight:1.3}}>テレアポのトークスクリプトを、<span style={{color:GOLD}}>AIが瞬時に生成する。</span></div>
+        <div style={{fontSize:11,fontWeight:700,color:RED,letterSpacing:"0.15em",marginBottom:4}}>🔥AI POWERED TELEAPO TOOL</div>
+        <div style={{fontSize:22,fontWeight:900,color:WHITE,lineHeight:1.3,whiteSpace:"nowrap"}}>最強のトークスクリプトを、<span style={{color:GOLD}}>AIが瞬時に設計する。</span></div>
       </div>
-      <div style={{display:"flex",gap:12,color:"#555",fontSize:11,fontWeight:600}}>
+      <div style={{display:"flex",gap:12,color:WHITE,fontSize:11,fontWeight:600,whiteSpace:"nowrap"}}>
         <span>STEP 1-5で簡単入力</span><span style={{color:RED}}>→</span><span>AIが自動生成</span><span style={{color:RED}}>→</span><span>トークスクリプト完成</span>
       </div>
     </div>
@@ -1037,5 +1037,3 @@ return(
     </div>
   </div>
 </div>
-);
-}
