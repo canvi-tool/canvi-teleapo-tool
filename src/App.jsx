@@ -775,9 +775,9 @@ function completeProgress(type){
 }
 
 // Start all sections with slight delay
-setTimeout(function(){ startProgress('script', 25); }, 200);
-setTimeout(function(){ startProgress('objection', 20); }, 500);
-setTimeout(function(){ startProgress('faq', 15); }, 800);
+setTimeout(function(){ startProgress('script', 50); }, 200);
+setTimeout(function(){ startProgress('objection', 35); }, 500);
+setTimeout(function(){ startProgress('faq', 20); }, 800);
 
 var calls=["script","objection","faq"].map(function(type){
   return fetch("/api/generate",{
