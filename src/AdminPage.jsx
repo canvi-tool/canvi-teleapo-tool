@@ -1,4 +1,8 @@
-import { useState, useEffect } from "react";
+了解です！AdminPage.jsx の完全版を出力します。
+<invoke name="create_file">
+<parameter name="description">AdminPage.jsx 最終完全版を作成</parameter>
+<parameter name="path">/tmp/AdminPage_COMPLETE_FINAL.jsx</parameter>
+<parameter name="file_text">import { useState, useEffect } from "react";
 import { auth, db } from "./firebase";
 import { signOut } from "firebase/auth";
 import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
@@ -59,9 +63,9 @@ window.location.href = '/';
 }
 return(
 <div onClick={onClose} style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:20,overflowY:"auto"}}>
-<div onClick={function(e){e.stopPropagation();}} style={{background:WHITE,borderRadius:16,maxWidth:1000,width:"100%",maxHeight:"90vh",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.3)",margin:"auto"}}>
+<div onClick={function(e){e.stopPropagation();}} style={{background:WHITE,borderRadius:16,maxWidth:1000,width:"100%",maxHeight:"95vh",display:"flex",flexDirection:"column",boxShadow:"0 20px 60px rgba(0,0,0,0.3)",margin:"auto"}}>
 {/* Header */}
-<div style={{background:DARK,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+<div style={{background:DARK,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
 <div>
 <div style={{fontSize:18,fontWeight:900,color:WHITE,marginBottom:4}}>{gen.serviceName || "無題"}</div>
 <div style={{fontSize:12,color:"#aaa"}}>{gen.companyName} • {CALL_PATTERN_LABELS[gen.callPattern] || gen.callPattern}</div>
@@ -69,7 +73,7 @@ return(
 <button onClick={onClose} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.1)",border:"none",color:WHITE,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
 </div>
     {/* Tabs */}
-    <div style={{background:GRAY_LIGHT,padding:"0 24px",display:"flex",gap:8,borderBottom:"2px solid "+BORDER,overflowX:"auto"}}>
+    <div style={{background:GRAY_LIGHT,padding:"0 24px",display:"flex",gap:8,borderBottom:"2px solid "+BORDER,overflowX:"auto",flexShrink:0}}>
       {[
         {id:"script",label:"📋 トークスクリプト"},
         {id:"objection",label:"🛡️ 切り返しトーク"},
@@ -82,7 +86,7 @@ return(
     </div>
     
     {/* Content */}
-    <div style={{padding:24,maxHeight:"55vh",overflowY:"auto"}}>
+    <div style={{padding:24,flex:1,overflowY:"auto"}}>
       {activeTab==="script"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.talkScript || "データなし"}</pre>}
       {activeTab==="objection"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.objectionHandling || "データなし"}</pre>}
       {activeTab==="faq"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.faq || "データなし"}</pre>}
@@ -218,7 +222,7 @@ return(
     </div>
     
     {/* Memo Section */}
-    <div style={{padding:"16px 24px",background:GRAY_LIGHT,borderTop:"1px solid "+BORDER}}>
+    <div style={{padding:"16px 24px",background:GRAY_LIGHT,borderTop:"1px solid "+BORDER,flexShrink:0}}>
       <div style={{fontSize:12,fontWeight:700,color:TEXT,marginBottom:8}}>📝 メモ</div>
       <div style={{display:"flex",gap:8}}>
         <textarea 
@@ -238,7 +242,7 @@ return(
     </div>
     
     {/* Footer Actions */}
-    <div style={{padding:"16px 24px",background:WHITE,borderTop:"1px solid "+BORDER,display:"flex",gap:12}}>
+    <div style={{padding:"16px 24px",background:WHITE,borderTop:"1px solid "+BORDER,display:"flex",gap:12,flexShrink:0}}>
       <button onClick={copyContent} style={{flex:1,padding:"12px 20px",borderRadius:8,background:copied?GOLD+"22":WHITE,border:"2px solid "+(copied?GOLD:BORDER),color:copied?GOLD:TEXT,fontSize:13,fontWeight:700,cursor:"pointer",transition:"all 0.2s"}}>
         {copied?"✓ コピー済み":"📋 コピー"}
       </button>
