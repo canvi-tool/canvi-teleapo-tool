@@ -675,6 +675,30 @@ var unsub=onAuthStateChanged(auth,function(u){setUser(u||null);});
 if(window.location.pathname==="/admin")setPage("admin");
 return unsub;
 },[]);
+// 管理画面からの復元データをチェック
+useEffect(function(){
+var restoreDataStr = localStorage.getItem('canvi_restore_data');
+if(restoreDataStr){
+try {
+var restoreData = JSON.parse(restoreDataStr);
+console.log("📥 Restoring data from admin:", restoreData);
+    // フォームに復元
+    setForm(function(prevForm){
+      return Object.assign({}, prevForm, restoreData);
+    });
+    
+    // 復元データを削除
+    localStorage.removeItem('canvi_restore_data');
+    
+    // ユーザーに通知
+    setTimeout(function(){
+      alert("✅ 過去の設定を復元しました！\n\n内容を確認・修正して生成してください。");
+    }, 500);
+  } catch(e) {
+    console.error("Failed to restore data:", e);
+  }
+}
+}, []);
 if(user===undefined) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
 if(page==="admin"&&!user) return <AuthPage/>;
 if(page==="admin"&&user) return <AdminPage/>;
@@ -775,9 +799,9 @@ function completeProgress(type){
 }
 
 // Start all sections with slight delay
-setTimeout(function(){ startProgress('script', 75); }, 200);
-setTimeout(function(){ startProgress('objection', 35); }, 500);
-setTimeout(function(){ startProgress('faq', 20); }, 800);
+setTimeout(function(){ startProgress('script', 25); }, 200);
+setTimeout(function(){ startProgress('objection', 20); }, 500);
+setTimeout(function(){ startProgress('faq', 15); }, 800);
 
 var calls=["script","objection","faq"].map(function(type){
   return fetch("/api/generate",{
@@ -865,7 +889,6 @@ setForm({companyName:"",serviceName:"",serviceOverview:"",serviceUrl:"",talkScri
 }
 return(
 <div style={{minHeight:"100vh",background:"#f7f7f7",fontFamily:"'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif",paddingBottom:80}}>
-{/* HEADER - ここを修正 */}
 <div style={{background:DARK,padding:"0 40px",display:"flex",alignItems:"center",justifyContent:"space-between",height:56,boxShadow:"0 2px 20px rgba(0,0,0,0.3)",position:"sticky",top:0,zIndex:100}}>
 <div style={{display:"flex",alignItems:"center",gap:12}}>
 <div style={{width:34,height:34,borderRadius:8,background:"linear-gradient(135deg,"+RED+","+RED_DARK+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>📞</div>
@@ -985,5 +1008,5 @@ return(
     </div>
   </div>
 </div>
-  );
+);
 }
