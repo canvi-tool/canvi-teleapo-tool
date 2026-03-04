@@ -474,7 +474,7 @@ if(/^1[.．]/.test(t)) return(
 <div style={{background:"rgba(30,48,80,0.5)",border:"1px solid rgba(74,120,200,0.18)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#a8bdd4",lineHeight:1.8}}>{t.replace(/^1[.．]\s*/,"")}</div>
 </div>
 );
-if(/^2[.．]/.test(続ける15:26 <invoke name="str_replace">
+if(/^2[.．]/.test(<invoke name="str_replace">
 <parameter name="description">App.jsxの続きを完成させる</parameter>
 <parameter name="path">/tmp/App_final_complete.jsx</parameter>
 <parameter name="old_str">                  if(/^2[\.．]/.test(</parameter>
