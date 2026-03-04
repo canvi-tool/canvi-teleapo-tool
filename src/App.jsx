@@ -474,27 +474,31 @@ if(/^1[.．]/.test(t)) return(
 <div style={{background:"rgba(30,48,80,0.5)",border:"1px solid rgba(74,120,200,0.18)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#a8bdd4",lineHeight:1.8}}>{t.replace(/^1[.．]\s*/,"")}</div>
 </div>
 );
-if(/^2[.．]/.test(t)) return(
-<div key={j} style={{borderRadius:7,overflow:"hidden"}}>
-<div style={{background:"#3a2800",padding:"3px 10px",fontSize:9,fontWeight:800,color:GOLD,display:"inline-block",borderRadius:"5px 5px 0 0"}}>② 転換</div>
-<div style={{background:"rgba(58,40,0,0.5)",border:"1px solid rgba(245,166,35,0.18)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#d4a84b",lineHeight:1.8}}>{t.replace(/^2[.．]\s*/,"")}</div>
-</div>
-);
-if(/^3[.．]/.test(t)) return(
-<div key={j} style={{borderRadius:7,overflow:"hidden"}}>
-<div style={{background:RED_DARK,padding:"3px 10px",fontSize:9,fontWeight:800,color:WHITE,display:"inline-block",borderRadius:"5px 5px 0 0"}}>③ クロージング</div>
-<div style={{background:"rgba(181,0,23,0.15)",border:"1px solid rgba(232,0,29,0.22)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#ff9999",lineHeight:1.8}}>{t.replace(/^3[.．]\s*/,"")}</div>
-</div>
-);
-return renderLine(line,j,RED);
-})}
-</div>
-)}
-</div>
-);
-})}
-</div>
-);
+if(/^2[.．]/.test(続ける15:26 <invoke name="str_replace">
+<parameter name="description">App.jsxの続きを完成させる</parameter>
+<parameter name="path">/tmp/App_final_complete.jsx</parameter>
+<parameter name="old_str">                  if(/^2[\.．]/.test(</parameter>
+<parameter name="new_str">                  if(/^2[\.．]/.test(t)) return(
+                    <div key={j} style={{borderRadius:7,overflow:"hidden"}}>
+                      <div style={{background:"#3a2800",padding:"3px 10px",fontSize:9,fontWeight:800,color:GOLD,display:"inline-block",borderRadius:"5px 5px 0 0"}}>② 転換</div>
+                      <div style={{background:"rgba(58,40,0,0.5)",border:"1px solid rgba(245,166,35,0.18)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#d4a84b",lineHeight:1.8}}>{t.replace(/^2[\.．]\s*/,"")}</div>
+                    </div>
+                  );
+                  if(/^3[\.．]/.test(t)) return(
+                    <div key={j} style={{borderRadius:7,overflow:"hidden"}}>
+                      <div style={{background:RED_DARK,padding:"3px 10px",fontSize:9,fontWeight:800,color:WHITE,display:"inline-block",borderRadius:"5px 5px 0 0"}}>③ クロージング</div>
+                      <div style={{background:"rgba(181,0,23,0.15)",border:"1px solid rgba(232,0,29,0.22)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#ff9999",lineHeight:1.8}}>{t.replace(/^3[\.．]\s*/,"")}</div>
+                    </div>
+                  );
+                  return renderLine(line,j,RED);
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 // ===== FAQ VIEWER =====
 function FaqViewer({content}){
@@ -687,13 +691,23 @@ console.log("📥 Restoring data from admin:", restoreData);
       return Object.assign({}, prevForm, restoreData);
     });
     
+    // 結果画面へジャンプ
+    if(restoreData.jumpToResult && restoreData.output){
+      console.log("🎯 Jumping to result page");
+      setStep(6);
+      setOutput(restoreData.output);
+      setSaved(true); // すでに保存済みとしてマーク
+    }
+    
     // 復元データを削除
     localStorage.removeItem('canvi_restore_data');
     
-    // ユーザーに通知
-    setTimeout(function(){
-      alert("✅ 過去の設定を復元しました！\n\n内容を確認・修正して生成してください。");
-    }, 500);
+    // ユーザーに通知（結果画面の場合のみ）
+    if(restoreData.jumpToResult && restoreData.output){
+      setTimeout(function(){
+        alert("✅ 過去の生成結果を復元しました！\n\n内容を確認して、必要に応じてブラッシュアップできます。");
+      }, 500);
+    }
   } catch(e) {
     console.error("Failed to restore data:", e);
   }
