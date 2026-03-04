@@ -777,26 +777,28 @@ useEffect(function(){
     localStorage.removeItem('canvi_restore_data');
   }
 }, []);
+console.log("🔍 Current page:", page);
+console.log("🔍 Current user:", user?.email);
+console.log("🔍 Current pathname:", window.location.pathname);
 
-  if(user===undefined || (user && userProfile===undefined)) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
+if(user===undefined || (user && userProfile===undefined)) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
 
-  // ログインしていない場合
-  if(page==="admin"&&!user) return <AuthPage/>;
-  if(page==="auth") return <AuthPage/>;
+// ログインしていない場合
+if(page==="admin"&&!user) return <AuthPage/>;
+if(page==="auth") return <AuthPage/>;
 
-  // ログイン済みだが、オンボーディング未完了の場合
-  if(user && userProfile===null){
-    return <OnboardingPage/>;
-  }
-  if(user && userProfile && !userProfile.onboardingCompleted){
-    return <OnboardingPage/>;
-  }
+// ログイン済みだが、オンボーディング未完了の場合
+if(user && userProfile===null){
+  return <OnboardingPage/>;
+}
+if(user && userProfile && !userProfile.onboardingCompleted){
+  return <OnboardingPage/>;
+}
 
-  // 通常のページ表示
-  if(page==="super-admin"&&user) return <SuperAdminPage/>;
-  if(page==="admin"&&user) return <AdminPage/>;
-  if(page==="landing") return <LandingPage onStart={function(){setPage("tool");setStep(1);}}/>;
-
+// 通常のページ表示
+if(page==="super-admin"&&user) return <SuperAdminPage/>;
+if(page==="admin"&&user) return <AdminPage/>;
+if(page==="landing") return <LandingPage onStart={function(){setPage("tool");setStep(1);}}/>;
   function set(k,v){setForm(function(f){return Object.assign({},f,{[k]:v});});}
 
   function canNext(){
