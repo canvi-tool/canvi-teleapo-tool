@@ -681,11 +681,13 @@ return unsub;
 },[]);
 // 管理画面からの復元データをチェック
 useEffect(function(){
-var restoreDataStr = localStorage.getItem('canvi_restore_data');
-if(restoreDataStr){
-try {
-var restoreData = JSON.parse(restoreDataStr);
-console.log("📥 Restoring data from admin:", restoreData);
+  try {
+    var restoreDataStr = localStorage.getItem('canvi_restore_data');
+    if(!restoreDataStr) return;
+    
+    var restoreData = JSON.parse(restoreDataStr);
+    console.log("📥 Restoring data from admin:", restoreData);
+    
     // フォームに復元
     setForm(function(prevForm){
       return Object.assign({}, prevForm, restoreData);
@@ -694,24 +696,21 @@ console.log("📥 Restoring data from admin:", restoreData);
     // 結果画面へジャンプ
     if(restoreData.jumpToResult && restoreData.output){
       console.log("🎯 Jumping to result page");
-      setStep(6);
-      setOutput(restoreData.output);
-      setSaved(true); // すでに保存済みとしてマーク
+      setTimeout(function(){
+        setStep(6);
+        setOutput(restoreData.output);
+        setSaved(true);
+        alert("✅ 過去の生成結果を復元しました！\n\n内容を確認して、必要に応じてブラッシュアップできます。");
+      }, 100);
     }
     
     // 復元データを削除
     localStorage.removeItem('canvi_restore_data');
     
-    // ユーザーに通知（結果画面の場合のみ）
-    if(restoreData.jumpToResult && restoreData.output){
-      setTimeout(function(){
-        alert("✅ 過去の生成結果を復元しました！\n\n内容を確認して、必要に応じてブラッシュアップできます。");
-      }, 500);
-    }
   } catch(e) {
-    console.error("Failed to restore data:", e);
+    console.error("❌ Failed to restore data:", e);
+    localStorage.removeItem('canvi_restore_data');
   }
-}
 }, []);
 if(user===undefined) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
 if(page==="admin"&&!user) return <AuthPage/>;
