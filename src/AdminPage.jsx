@@ -84,8 +84,8 @@ return(
     {/* Content */}
     <div style={{padding:24,flex:1,overflowY:"auto",overflowX:"hidden"}}>
       {activeTab==="script"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit",margin:0,wordBreak:"break-word"}}>{gen.output?.talkScript || "データなし"}</pre>}
-      {activeTab==="objection"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.objectionHandling || "データなし"}</pre>}
-      {activeTab==="faq"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.faq || "データなし"}</pre>}
+      {activeTab==="objection"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit",margin:0,wordBreak:"break-word"}}>{gen.output?.objectionHandling || "データなし"}</pre>}
+      {activeTab==="faq"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit",margin:0,wordBreak:"break-word"}}>{gen.output?.faq || "データなし"}</pre>}
       
       {/* Input History Tab */}
       {activeTab==="history"&&(
