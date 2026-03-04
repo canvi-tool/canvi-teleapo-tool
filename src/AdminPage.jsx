@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "./firebase";
 import { signOut } from "firebase/auth";
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 const RED="#e8001d",RED_DARK="#b50017",RED_LIGHT="#fff0f2",GOLD="#f5a623",DARK="#0f0f0f",WHITE="#ffffff",TEXT="#1a1a1a",TEXT_MUTED="#666",BORDER="#e8e8e8",GRAY_LIGHT="#f5f5f5";
 const CALL_PATTERN_LABELS = {
 new_list: "新規リスト向け",
@@ -10,10 +10,12 @@ cold_list: "過去名刺・コールドリスト向け",
 web_inquiry: "Web問い合わせ向け",
 upsell: "既存顧客アップセル向け"
 };
-function DetailModal({gen,onClose}){
+function DetailModal({gen,onClose,onMemoUpdate}){
 if(!gen)return null;
 var[activeTab,setActiveTab]=useState("script");
 var[copied,setCopied]=useState(false);
+var[memo,setMemo]=useState(gen.memo||"");
+var[memoSaving,setMemoSaving]=useState(false);
 function copyContent(){
 var text = activeTab==="script" ? gen.output?.talkScript :
 activeTab==="objection" ? gen.output?.objectionHandling :
@@ -22,43 +24,42 @@ navigator.clipboard.writeText(text || "");
 setCopied(true);
 setTimeout(function(){setCopied(false);},2000);
 }
+function saveMemo(){
+setMemoSaving(true);
+updateDoc(doc(db, "generations", gen.id), {
+memo: memo
+})
+.then(function(){
+setMemoSaving(false);
+onMemoUpdate(gen.id, memo);
+alert("✅ メモを保存しました");
+})
+.catch(function(err){
+console.error("Memo save error:", err);
+setMemoSaving(false);
+alert("❌ メモの保存に失敗しました");
+});
+}
 function restoreToResult(){
-// すべてのフォームデータ + 生成結果を保存
 var restoreData = {
-// フォームデータ
 companyName: gen.companyName || "",
 serviceName: gen.serviceName || "",
-serviceOverview: gen.serviceOverview || "",
-serviceUrl: gen.serviceUrl || "",
-talkScript: gen.talkScript || "",
-voiceNote: gen.voiceNote || "",
 callPattern: gen.callPattern || "",
-industries: gen.industries || [],
-employeeRange: gen.employeeRange || [],
-departments: gen.departments || [],
-area: gen.area || "",
-contactRole: gen.contactRole || "",
-goal: gen.goal || "",
-appealPoints: gen.appealPoints || "",
-differentiation: gen.differentiation || "",
-competitors: gen.competitors || "",
-rcptObjections: gen.rcptObjections || "",
-contactObjections: gen.contactObjections || "",
-situationNotes: gen.situationNotes || "",
-  // 生成結果
-  output: gen.output,
-  
-  // フラグ：結果画面に直接ジャンプ
-  jumpToResult: true
+output: gen.output,
+jumpToResult: true
 };
+// inputHistoryがあれば全て復元
+if(gen.inputHistory){
+  Object.assign(restoreData, gen.inputHistory);
+}
 
 console.log("💾 Saving restore data:", restoreData);
 localStorage.setItem('canvi_restore_data', JSON.stringify(restoreData));
 window.location.href = '/';
 }
 return(
-<div onClick={onClose} style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:20}}>
-<div onClick={function(e){e.stopPropagation();}} style={{background:WHITE,borderRadius:16,maxWidth:900,width:"100%",maxHeight:"90vh",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}}>
+<div onClick={onClose} style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:20,overflowY:"auto"}}>
+<div onClick={function(e){e.stopPropagation();}} style={{background:WHITE,borderRadius:16,maxWidth:1000,width:"100%",maxHeight:"90vh",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.3)",margin:"auto"}}>
 {/* Header */}
 <div style={{background:DARK,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
 <div>
@@ -68,26 +69,176 @@ return(
 <button onClick={onClose} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.1)",border:"none",color:WHITE,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
 </div>
     {/* Tabs */}
-    <div style={{background:GRAY_LIGHT,padding:"0 24px",display:"flex",gap:8,borderBottom:"2px solid "+BORDER}}>
+    <div style={{background:GRAY_LIGHT,padding:"0 24px",display:"flex",gap:8,borderBottom:"2px solid "+BORDER,overflowX:"auto"}}>
       {[
         {id:"script",label:"📋 トークスクリプト"},
         {id:"objection",label:"🛡️ 切り返しトーク"},
-        {id:"faq",label:"❓ FAQ"}
+        {id:"faq",label:"❓ FAQ"},
+        {id:"history",label:"📝 入力履歴"}
       ].map(function(t){
         var active=activeTab===t.id;
-        return <button key={t.id} onClick={function(){setActiveTab(t.id);setCopied(false);}} style={{padding:"12px 20px",background:active?WHITE:"transparent",border:"none",borderBottom:active?"3px solid "+RED:"3px solid transparent",color:active?RED:TEXT_MUTED,fontWeight:active?700:500,fontSize:13,cursor:"pointer",marginBottom:-2}}>{t.label}</button>;
+        return <button key={t.id} onClick={function(){setActiveTab(t.id);setCopied(false);}} style={{padding:"12px 20px",background:active?WHITE:"transparent",border:"none",borderBottom:active?"3px solid "+RED:"3px solid transparent",color:active?RED:TEXT_MUTED,fontWeight:active?700:500,fontSize:13,cursor:"pointer",marginBottom:-2,whiteSpace:"nowrap"}}>{t.label}</button>;
       })}
     </div>
     
     {/* Content */}
-    <div style={{padding:24,maxHeight:"50vh",overflowY:"auto"}}>
+    <div style={{padding:24,maxHeight:"55vh",overflowY:"auto"}}>
       {activeTab==="script"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.talkScript || "データなし"}</pre>}
       {activeTab==="objection"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.objectionHandling || "データなし"}</pre>}
       {activeTab==="faq"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.faq || "データなし"}</pre>}
+      
+      {/* Input History Tab */}
+      {activeTab==="history"&&(
+        <div>
+          {gen.inputHistory?(
+            <div style={{display:"flex",flexDirection:"column",gap:20}}>
+              {/* STEP 1: サービス情報 */}
+              <div style={{background:GRAY_LIGHT,borderRadius:10,padding:"16px 20px",border:"1px solid "+BORDER}}>
+                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:20}}>📦</span>STEP 1: サービス基本情報
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                  <div>
+                    <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>会社名</div>
+                    <div style={{fontSize:13,color:TEXT}}>{gen.inputHistory.companyName || "-"}</div>
+                  </div>
+                  <div>
+                    <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>サービス名</div>
+                    <div style={{fontSize:13,color:TEXT}}>{gen.inputHistory.serviceName || "-"}</div>
+                  </div>
+                  <div style={{gridColumn:"1 / -1"}}>
+                    <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>サービス概要</div>
+                    <div style={{fontSize:13,color:TEXT,whiteSpace:"pre-wrap"}}>{gen.inputHistory.serviceOverview || "-"}</div>
+                  </div>
+                  {gen.inputHistory.serviceUrl&&(
+                    <div style={{gridColumn:"1 / -1"}}>
+                      <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>サービスURL</div>
+                      <div style={{fontSize:13,color:TEXT}}>{gen.inputHistory.serviceUrl}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* STEP 2: 架電パターン */}
+              <div style={{background:GRAY_LIGHT,borderRadius:10,padding:"16px 20px",border:"1px solid "+BORDER}}>
+                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:20}}>📞</span>STEP 2: 架電パターン
+                </div>
+                <div style={{fontSize:13,color:TEXT}}>
+                  {CALL_PATTERN_LABELS[gen.inputHistory.callPattern] || gen.inputHistory.callPattern || "-"}
+                </div>
+              </div>
+
+              {/* STEP 3: ターゲット設定 */}
+              <div style={{background:GRAY_LIGHT,borderRadius:10,padding:"16px 20px",border:"1px solid "+BORDER}}>
+                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:20}}>🎯</span>STEP 3: ターゲット設定
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                  <div>
+                    <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>業界</div>
+                    <div style={{fontSize:13,color:TEXT}}>{gen.inputHistory.industries?.join("、") || "-"}</div>
+                  </div>
+                  <div>
+                    <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>エリア</div>
+                    <div style={{fontSize:13,color:TEXT}}>{gen.inputHistory.area || "-"}</div>
+                  </div>
+                  {gen.inputHistory.employeeRange?.length>0&&(
+                    <div>
+                      <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>従業員数</div>
+                      <div style={{fontSize:13,color:TEXT}}>{gen.inputHistory.employeeRange.join("、")}</div>
+                    </div>
+                  )}
+                  {gen.inputHistory.departments?.length>0&&(
+                    <div>
+                      <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>担当部署</div>
+                      <div style={{fontSize:13,color:TEXT}}>{gen.inputHistory.departments.join("、")}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* STEP 4: 営業戦略 */}
+              <div style={{background:GRAY_LIGHT,borderRadius:10,padding:"16px 20px",border:"1px solid "+BORDER}}>
+                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:20}}>⚡</span>STEP 4: 営業戦略
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                  {gen.inputHistory.appealPoints&&(
+                    <div>
+                      <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>訴求ポイント・強み</div>
+                      <div style={{fontSize:13,color:TEXT,whiteSpace:"pre-wrap"}}>{gen.inputHistory.appealPoints}</div>
+                    </div>
+                  )}
+                  {gen.inputHistory.differentiation&&(
+                    <div>
+                      <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>差別化ポイント</div>
+                      <div style={{fontSize:13,color:TEXT,whiteSpace:"pre-wrap"}}>{gen.inputHistory.differentiation}</div>
+                    </div>
+                  )}
+                  {gen.inputHistory.goal&&(
+                    <div>
+                      <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>架電目標・KPI</div>
+                      <div style={{fontSize:13,color:TEXT}}>{gen.inputHistory.goal}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* STEP 5: 断り文句 */}
+              <div style={{background:GRAY_LIGHT,borderRadius:10,padding:"16px 20px",border:"1px solid "+BORDER}}>
+                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:20}}>🛡️</span>STEP 5: 断り文句・想定状況
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                  {gen.inputHistory.rcptObjections&&(
+                    <div>
+                      <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>受付での断り文句</div>
+                      <div style={{fontSize:13,color:TEXT,whiteSpace:"pre-wrap"}}>{gen.inputHistory.rcptObjections}</div>
+                    </div>
+                  )}
+                  {gen.inputHistory.contactObjections&&(
+                    <div>
+                      <div style={{fontSize:11,color:TEXT_MUTED,fontWeight:700,marginBottom:4}}>担当者からの断り文句</div>
+                      <div style={{fontSize:13,color:TEXT,whiteSpace:"pre-wrap"}}>{gen.inputHistory.contactObjections}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ):(
+            <div style={{textAlign:"center",padding:40,color:TEXT_MUTED}}>
+              <div style={{fontSize:48,marginBottom:16}}>📭</div>
+              <div style={{fontSize:14,fontWeight:700}}>入力履歴がありません</div>
+              <div style={{fontSize:12,marginTop:8}}>この生成は古いバージョンのため、入力履歴が保存されていません。</div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+    
+    {/* Memo Section */}
+    <div style={{padding:"16px 24px",background:GRAY_LIGHT,borderTop:"1px solid "+BORDER}}>
+      <div style={{fontSize:12,fontWeight:700,color:TEXT,marginBottom:8}}>📝 メモ</div>
+      <div style={{display:"flex",gap:8}}>
+        <textarea 
+          value={memo} 
+          onChange={function(e){setMemo(e.target.value);}} 
+          placeholder="例：〇〇社向けAパターン、2回目の提案用..."
+          rows={2}
+          style={{flex:1,padding:"8px 12px",borderRadius:6,border:"2px solid "+BORDER,fontSize:12,resize:"none",fontFamily:"inherit",outline:"none"}}
+        />
+        <button 
+          onClick={saveMemo} 
+          disabled={memoSaving}
+          style={{padding:"8px 16px",borderRadius:6,background:memoSaving?"#ccc":RED,color:WHITE,fontSize:12,fontWeight:700,border:"none",cursor:memoSaving?"not-allowed":"pointer",whiteSpace:"nowrap"}}>
+          {memoSaving?"保存中...":"💾 保存"}
+        </button>
+      </div>
     </div>
     
     {/* Footer Actions */}
-    <div style={{padding:"16px 24px",background:GRAY_LIGHT,borderTop:"1px solid "+BORDER,display:"flex",gap:12}}>
+    <div style={{padding:"16px 24px",background:WHITE,borderTop:"1px solid "+BORDER,display:"flex",gap:12}}>
       <button onClick={copyContent} style={{flex:1,padding:"12px 20px",borderRadius:8,background:copied?GOLD+"22":WHITE,border:"2px solid "+(copied?GOLD:BORDER),color:copied?GOLD:TEXT,fontSize:13,fontWeight:700,cursor:"pointer",transition:"all 0.2s"}}>
         {copied?"✓ コピー済み":"📋 コピー"}
       </button>
@@ -149,6 +300,16 @@ getDocs(q)
     setLoading(false);
   });
 }, []);
+function handleMemoUpdate(genId, newMemo){
+setGens(function(prevGens){
+return prevGens.map(function(g){
+if(g.id === genId){
+return Object.assign({}, g, {memo: newMemo});
+}
+return g;
+});
+});
+}
 var stats = {
 total: gens.length,
 clients: new Set(gens.map(function(g){return g.companyName;})).size,
@@ -205,7 +366,7 @@ return(
 <button onClick={function(){signOut(auth).then(function(){window.location.href="/";});}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #444",background:"transparent",color:"#ccc",fontSize:11,fontWeight:700,cursor:"pointer"}}>ログアウト</button>
 </div>
 </div>
-  <div style={{maxWidth:1200,margin:"0 auto",padding:"40px 24px"}}>
+  <div style={{maxWidth:1400,margin:"0 auto",padding:"40px 24px"}}>
     {/* Tabs */}
     <div style={{display:"flex",gap:8,marginBottom:32}}>
       {[{id:"list",label:"📋 生成履歴"},{id:"stats",label:"📊 統計"}].map(function(t){
@@ -250,6 +411,7 @@ return(
                   <th style={{padding:"14px 20px",textAlign:"left",fontSize:12,fontWeight:800,color:TEXT,letterSpacing:"0.05em"}}>会社名</th>
                   <th style={{padding:"14px 20px",textAlign:"left",fontSize:12,fontWeight:800,color:TEXT,letterSpacing:"0.05em"}}>サービス名</th>
                   <th style={{padding:"14px 20px",textAlign:"left",fontSize:12,fontWeight:800,color:TEXT,letterSpacing:"0.05em"}}>架電パターン</th>
+                  <th style={{padding:"14px 20px",textAlign:"left",fontSize:12,fontWeight:800,color:TEXT,letterSpacing:"0.05em"}}>メモ</th>
                   <th style={{padding:"14px 20px",textAlign:"center",fontSize:12,fontWeight:800,color:TEXT,letterSpacing:"0.05em"}}>操作</th>
                 </tr>
               </thead>
@@ -261,6 +423,11 @@ return(
                       <td style={{padding:"16px 20px",fontSize:13,fontWeight:700,color:TEXT}}>{g.companyName || "-"}</td>
                       <td style={{padding:"16px 20px",fontSize:13,color:TEXT}}>{g.serviceName || "-"}</td>
                       <td style={{padding:"16px 20px",fontSize:13,color:TEXT}}>{CALL_PATTERN_LABELS[g.callPattern] || g.callPattern || "-"}</td>
+                      <td style={{padding:"16px 20px",fontSize:13,color:TEXT_MUTED,maxWidth:200}}>
+                        <div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                          {g.memo || <span style={{color:"#ccc",fontStyle:"italic"}}>未記入</span>}
+                        </div>
+                      </td>
                       <td style={{padding:"16px 20px",textAlign:"center"}}>
                         <button onClick={function(){setSelectedGen(g);}} style={{padding:"6px 16px",borderRadius:6,background:RED_LIGHT,border:"1px solid "+RED,color:RED,fontSize:12,fontWeight:700,cursor:"pointer"}}>📄 内容を見る</button>
                       </td>
@@ -276,7 +443,7 @@ return(
   </div>
 
   {/* Detail Modal */}
-  {selectedGen&&<DetailModal gen={selectedGen} onClose={function(){setSelectedGen(null);}}/>}
+  {selectedGen&&<DetailModal gen={selectedGen} onClose={function(){setSelectedGen(null);}} onMemoUpdate={handleMemoUpdate}/>}
 </div>
 );
 }
