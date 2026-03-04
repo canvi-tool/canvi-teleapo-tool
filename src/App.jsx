@@ -6,6 +6,7 @@ import AuthPage from "./AuthPage";
 import AdminPage from "./AdminPage";
 import LandingPage from "./LandingPage";
 import OnboardingPage from "./OnboardingPage";
+import SuperAdminPage from "./SuperAdminPage"; 
 
 const CALL_PATTERNS = [
   { id: "new_list", label: "新規リスト向け", icon: "📋", desc: "未接触の新規ターゲットへのコールド架電" },
