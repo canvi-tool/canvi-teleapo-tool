@@ -1,39 +1,51 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "./firebase";
 import { signOut } from "firebase/auth";
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
-const RED="#e8001d",RED_DARK="#b50017",RED_LIGHT="#fff0f2",GOLD="#f5a623",DARK="#0f0f0f",WHITE="#ffffff",TEXT="#1a1a1a",TEXT_MUTED="#666",BORDER="#e8e8e8",GRAY_LIGHT="#f5f5f5";
-const CALL_PATTERN_LABELS = {
+import { collection, query, where, orderBy, getDocs } from "firebase/firestore";const RED="#e8001d",RED_DARK="#b50017",RED_LIGHT="#fff0f2",GOLD="#f5a623",DARK="#0f0f0f",WHITE="#ffffff",TEXT="#1a1a1a",TEXT_MUTED="#666",BORDER="#e8e8e8",GRAY_LIGHT="#f5f5f5";const CALL_PATTERN_LABELS = {
 new_list: "新規リスト向け",
 exhibition: "展示会リード向け",
 cold_list: "過去名刺・コールドリスト向け",
 web_inquiry: "Web問い合わせ向け",
 upsell: "既存顧客アップセル向け"
-};
-function DetailModal({gen,onClose}){
+};function DetailModal({gen,onClose}){
 if(!gen)return null;
 var[activeTab,setActiveTab]=useState("script");
-var[copied,setCopied]=useState(false);
-function copyContent(){
+var[copied,setCopied]=useState(false);function copyContent(){
 var text = activeTab==="script" ? gen.output?.talkScript :
 activeTab==="objection" ? gen.output?.objectionHandling :
 gen.output?.faq;
 navigator.clipboard.writeText(text || "");
 setCopied(true);
 setTimeout(function(){setCopied(false);},2000);
-}
-function restoreAndGenerate(){
-// 過去のフォームデータを復元用に保存
+}function restoreToResult(){
+// すべてのフォームデータ + 生成結果を保存
 var restoreData = {
+// フォームデータ
 companyName: gen.companyName || "",
 serviceName: gen.serviceName || "",
+serviceOverview: gen.serviceOverview || "",
+serviceUrl: gen.serviceUrl || "",
+talkScript: gen.talkScript || "",
+voiceNote: gen.voiceNote || "",
 callPattern: gen.callPattern || "",
-// 他のフィールドがあれば追加
-};
+industries: gen.industries || [],
+employeeRange: gen.employeeRange || [],
+departments: gen.departments || [],
+area: gen.area || "",
+contactRole: gen.contactRole || "",
+goal: gen.goal || "",
+appealPoints: gen.appealPoints || "",
+differentiation: gen.differentiation || "",
+competitors: gen.competitors || "",
+rcptObjections: gen.rcptObjections || "",
+contactObjections: gen.contactObjections || "",
+situationNotes: gen.situationNotes || "",  // 生成結果
+  output: gen.output,  // フラグ：結果画面に直接ジャンプ
+  jumpToResult: true
+};console.log("💾 Saving restore data:", restoreData);
 localStorage.setItem('canvi_restore_data', JSON.stringify(restoreData));
 window.location.href = '/';
-}
-return(
+}return(
 <div onClick={onClose} style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:20}}>
 <div onClick={function(e){e.stopPropagation();}} style={{background:WHITE,borderRadius:16,maxWidth:900,width:"100%",maxHeight:"90vh",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}}>
 {/* Header */}
@@ -43,8 +55,7 @@ return(
 <div style={{fontSize:12,color:"#aaa"}}>{gen.companyName} • {CALL_PATTERN_LABELS[gen.callPattern] || gen.callPattern}</div>
 </div>
 <button onClick={onClose} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.1)",border:"none",color:WHITE,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
-</div>
-    {/* Tabs */}
+</div>    {/* Tabs */}
     <div style={{background:GRAY_LIGHT,padding:"0 24px",display:"flex",gap:8,borderBottom:"2px solid "+BORDER}}>
       {[
         {id:"script",label:"📋 トークスクリプト"},
@@ -54,51 +65,40 @@ return(
         var active=activeTab===t.id;
         return <button key={t.id} onClick={function(){setActiveTab(t.id);setCopied(false);}} style={{padding:"12px 20px",background:active?WHITE:"transparent",border:"none",borderBottom:active?"3px solid "+RED:"3px solid transparent",color:active?RED:TEXT_MUTED,fontWeight:active?700:500,fontSize:13,cursor:"pointer",marginBottom:-2}}>{t.label}</button>;
       })}
-    </div>
-    
-    {/* Content */}
+    </div>    {/* Content */}
     <div style={{padding:24,maxHeight:"50vh",overflowY:"auto"}}>
       {activeTab==="script"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.talkScript || "データなし"}</pre>}
       {activeTab==="objection"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.objectionHandling || "データなし"}</pre>}
       {activeTab==="faq"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.faq || "データなし"}</pre>}
-    </div>
-    
-    {/* Footer Actions */}
+    </div>    {/* Footer Actions */}
     <div style={{padding:"16px 24px",background:GRAY_LIGHT,borderTop:"1px solid "+BORDER,display:"flex",gap:12}}>
       <button onClick={copyContent} style={{flex:1,padding:"12px 20px",borderRadius:8,background:copied?GOLD+"22":WHITE,border:"2px solid "+(copied?GOLD:BORDER),color:copied?GOLD:TEXT,fontSize:13,fontWeight:700,cursor:"pointer",transition:"all 0.2s"}}>
         {copied?"✓ コピー済み":"📋 コピー"}
       </button>
-      <button onClick={restoreAndGenerate} style={{flex:1,padding:"12px 20px",borderRadius:8,background:"linear-gradient(135deg,"+RED+","+RED_DARK+")",border:"none",color:WHITE,fontSize:13,fontWeight:800,cursor:"pointer",boxShadow:"0 4px 16px rgba(232,0,29,0.2)"}}>
+      <button onClick={restoreToResult} style={{flex:1,padding:"12px 20px",borderRadius:8,background:"linear-gradient(135deg,"+RED+","+RED_DARK+")",border:"none",color:WHITE,fontSize:13,fontWeight:800,cursor:"pointer",boxShadow:"0 4px 16px rgba(232,0,29,0.2)"}}>
         🔄 この設定で新規生成
       </button>
     </div>
   </div>
 </div>
 );
-}
-export default function AdminPage(){
+}export default function AdminPage(){
 var[gens,setGens]=useState([]);
 var[loading,setLoading]=useState(true);
 var[tab,setTab]=useState("list");
 var[selectedGen,setSelectedGen]=useState(null);
-var[error,setError]=useState(null);
-useEffect(function(){
+var[error,setError]=useState(null);useEffect(function(){
 if(!auth.currentUser){
 console.log("⚠️ No user logged in");
 setError("ログインしていません");
 setLoading(false);
 return;
-}
-setLoading(true);
+}setLoading(true);
 setError(null);
-console.log("📊 Fetching data for user:", auth.currentUser.uid);
-
-var q = query(
+console.log("📊 Fetching data for user:", auth.currentUser.uid);var q = query(
   collection(db, "generations"),
   where("uid", "==", auth.currentUser.uid)
-);
-
-getDocs(q)
+);getDocs(q)
   .then(function(snapshot){
     console.log("✅ Fetched", snapshot.size, "documents");
     var arr = [];
@@ -109,13 +109,9 @@ getDocs(q)
         ...data,
         createdAt: data.createdAt?.toDate() || new Date()
       });
-    });
-    
-    arr.sort(function(a, b){
+    });    arr.sort(function(a, b){
       return b.createdAt - a.createdAt;
-    });
-    
-    setGens(arr);
+    });    setGens(arr);
     setLoading(false);
   })
   .catch(function(err){
@@ -125,8 +121,7 @@ getDocs(q)
     setError("データ取得エラー: " + err.message);
     setLoading(false);
   });
-}, []);
-var stats = {
+}, []);var stats = {
 total: gens.length,
 clients: new Set(gens.map(function(g){return g.companyName;})).size,
 thisMonth: gens.filter(function(g){
@@ -135,8 +130,7 @@ if(!d) return false;
 var now = new Date();
 return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
 }).length
-};
-if(loading){
+};if(loading){
 return(
 <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:GRAY_LIGHT}}>
 <div style={{textAlign:"center"}}>
@@ -145,8 +139,7 @@ return(
 </div>
 </div>
 );
-}
-if(error){
+}if(error){
 return(
 <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:GRAY_LIGHT}}>
 <div style={{textAlign:"center",maxWidth:500,background:WHITE,padding:40,borderRadius:16,boxShadow:"0 4px 24px rgba(0,0,0,0.1)"}}>
@@ -164,8 +157,7 @@ return(
 </div>
 </div>
 );
-}
-return(
+}return(
 <div style={{minHeight:"100vh",background:GRAY_LIGHT,fontFamily:"'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif"}}>
 {/* Header */}
 <div style={{background:DARK,padding:"0 40px",display:"flex",alignItems:"center",justifyContent:"space-between",height:56,boxShadow:"0 2px 20px rgba(0,0,0,0.3)"}}>
@@ -181,17 +173,14 @@ return(
 <a href="/" style={{padding:"6px 14px",borderRadius:8,background:"transparent",border:"1px solid #444",color:"#ccc",fontSize:11,fontWeight:700,textDecoration:"none"}}>ツールに戻る</a>
 <button onClick={function(){signOut(auth).then(function(){window.location.href="/";});}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #444",background:"transparent",color:"#ccc",fontSize:11,fontWeight:700,cursor:"pointer"}}>ログアウト</button>
 </div>
-</div>
-  <div style={{maxWidth:1200,margin:"0 auto",padding:"40px 24px"}}>
+</div>  <div style={{maxWidth:1200,margin:"0 auto",padding:"40px 24px"}}>
     {/* Tabs */}
     <div style={{display:"flex",gap:8,marginBottom:32}}>
       {[{id:"list",label:"📋 生成履歴"},{id:"stats",label:"📊 統計"}].map(function(t){
         var active=tab===t.id;
         return <button key={t.id} onClick={function(){setTab(t.id);}} style={{padding:"12px 24px",borderRadius:10,background:active?WHITE:GRAY_LIGHT,border:"2px solid "+(active?RED:BORDER),color:active?RED:TEXT_MUTED,fontWeight:active?800:600,fontSize:14,cursor:"pointer",boxShadow:active?"0 4px 16px rgba(232,0,29,0.1)":"none"}}>{t.label}</button>;
       })}
-    </div>
-
-    {/* Stats Tab */}
+    </div>    {/* Stats Tab */}
     {tab==="stats"&&(
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20}}>
         {[
@@ -208,9 +197,7 @@ return(
           );
         })}
       </div>
-    )}
-
-    {/* List Tab */}
+    )}    {/* List Tab */}
     {tab==="list"&&(
       <div>
         {gens.length===0?(
@@ -250,9 +237,7 @@ return(
         )}
       </div>
     )}
-  </div>
-
-  {/* Detail Modal */}
+  </div>  {/* Detail Modal */}
   {selectedGen&&<DetailModal gen={selectedGen} onClose={function(){setSelectedGen(null);}}/>}
 </div>
 );
