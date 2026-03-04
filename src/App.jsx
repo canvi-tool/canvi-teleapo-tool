@@ -762,14 +762,18 @@ export default function CanviTool(){
   if(step===4)return !!form.appealPoints;
   return true;
    }
-  {step<6&&(
+  // 「次へ」ボタンの onClick 処理を修正（約1050行目あたり）
+
+{step<6&&(
   <button onClick={function(){
     // STEP2からSTEP3に進む時だけログインチェック
     if(step===2 && !user){
       alert("🔒 STEP3以降はログインが必要です\n\n無料で会員登録してご利用ください。");
       setPage("auth");
-      return;
+      return;  // ← ここで止める
     }
+    
+    // canNext()がtrueの場合のみ次へ進む
     if(canNext()){
       setStep(function(s){return s+1;});
     }
