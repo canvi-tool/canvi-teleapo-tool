@@ -652,22 +652,58 @@ export default function CanviTool(){
   }
 
   function generate(fb){
-    setLoading(true);setSaved(false);
-    var results={};
-    var calls=["script","objection","faq"].map(function(type){
-      return fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-opus-4-5",max_tokens:type==="script"?4000:3000,
-          messages:[{role:"user",content:buildPrompt(type,fb)}]})})
-      .then(function(res){return res.json();})
-      .then(function(data){results[type]=data.content?data.content.map(function(c){return c.text||"";}).join(""):"";});
+  setLoading(true);setSaved(false);
+  var results={script:"",objection:"",faq:""};
+  var calls=["script","objection","faq"].map(function(type){
+    return fetch("/api/generate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-opus-4-5",
+        max_tokens:type==="script"?4000:3000,
+        messages:[{role:"user",content:buildPrompt(type,fb)}]
+      })
+    })
+    .then(function(res){return res.json();})
+    .then(function(data){
+      var text="";
+      if(data&&data.content&&Array.isArray(data.content)){
+        data.content.forEach(function(c){if(c&&c.text)text+=c.text;});
+      }
+      console.log("type:"+type+" length:"+text.length+" preview:"+text.slice(0,80));
+      results[type]=text;
+    })
+    .catch(function(err){
+      console.error("error for "+type,err);
+      results[type]="";
     });
-    Promise.all(calls).then(function(){
-      var parsed={talkScript:results["script"]||"",objectionHandling:results["objection"]||"",faq:results["faq"]||""};
-      var ver={id:Date.now(),timestamp:new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}),data:parsed};
-      setVersions(function(v){return [...v,ver];});
-      setCurrentId(ver.id);setOutput(parsed);setLoading(false);
-    }).catch(function(){alert("生成に失敗しました。");setLoading(false);});
-  }
+  });
+  Promise.all(calls).then(function(){
+    console.log("all done",{
+      scriptLen:results.script.length,
+      objectionLen:results.objection.length,
+      faqLen:results.faq.length
+    });
+    var parsed={
+      talkScript:results.script,
+      objectionHandling:results.objection,
+      faq:results.faq
+    };
+    var ver={
+      id:Date.now(),
+      timestamp:new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}),
+      data:parsed
+    };
+    setVersions(function(v){return v.concat([ver]);});
+    setCurrentId(ver.id);
+    setOutput(parsed);
+    setLoading(false);
+  }).catch(function(err){
+    console.error("Promise.all error",err);
+    alert("生成に失敗しました。");
+    setLoading(false);
+  });
+}
 
   function regenerateSection(section,fb){
     setRegenLoading(true);
