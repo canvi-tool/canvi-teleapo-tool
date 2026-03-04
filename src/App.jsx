@@ -749,11 +749,23 @@ export default function CanviTool(){
     }
   }, []);
 
-  if(user===undefined) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
-  if(page==="admin"&&!user) return <AuthPage/>;
-  if(page==="admin"&&user) return <AdminPage/>;
-  if(page==="auth") return <AuthPage/>;
-  if(page==="landing") return <LandingPage onStart={function(){setPage("tool");setStep(1);}}/>;
+if(user===undefined || (user && userProfile===undefined)) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
+
+// ログインしていない場合
+if(page==="admin"&&!user) return <AuthPage/>;
+if(page==="auth") return <AuthPage/>;
+
+// ログイン済みだが、オンボーディング未完了の場合
+if(user && userProfile===null){
+  return <OnboardingPage/>;
+}
+if(user && userProfile && !userProfile.onboardingCompleted){
+  return <OnboardingPage/>;
+}
+
+// 通常のページ表示
+if(page==="admin"&&user) return <AdminPage/>;
+if(page==="landing") return <LandingPage onStart={function(){setPage("tool");setStep(1);}}/>;
 
   function set(k,v){setForm(function(f){return Object.assign({},f,{[k]:v});});}
 
