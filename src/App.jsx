@@ -1022,25 +1022,33 @@ export default function CanviTool(){
   return(
     <div style={{minHeight:"100vh",background:"#f7f7f7",fontFamily:"'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif",paddingBottom:80}}>
       <div style={{background:DARK,padding:"0 40px",display:"flex",alignItems:"center",justifyContent:"space-between",height:56,boxShadow:"0 2px 20px rgba(0,0,0,0.3)",position:"sticky",top:0,zIndex:100}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <div style={{width:34,height:34,borderRadius:8,background:"linear-gradient(135deg,"+RED+","+RED_DARK+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>📞</div>
-          <div>
-            <div style={{color:WHITE,fontWeight:900,fontSize:17,letterSpacing:"0.05em",lineHeight:1}}>テレアポの達人</div>
-            <div style={{color:GOLD,fontSize:9,fontWeight:700,letterSpacing:"0.1em",marginTop:1}}>AI SCRIPT GENERATOR</div>
-          </div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          {user?<>
-            <span style={{color:WHITE,fontSize:11}}>{user.email}</span>
-            <a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:RED,color:WHITE,fontSize:11,fontWeight:700,textDecoration:"none"}}>📊 管理画面</a>
-            {["yuji.okabayashi@canvi.co.jp","admin@canvi.co.jp"].includes(user.email)&&(
-              <a href="/super-admin" style={{padding:"6px 14px",borderRadius:8,background:GOLD,color:DARK,fontSize:11,fontWeight:700,textDecoration:"none",boxShadow:"0 2px 8px rgba(245,166,35,0.3)"}}>👑 Super Admin</a>
-            )}
-            <button onClick={function(){signOut(auth);}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #444",background:"transparent",color:"#ccc",fontSize:11,fontWeight:700,cursor:"pointer"}}>ログアウト</button>
-          </>:<a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:"transparent",border:"1px solid #444",color:"#ccc",fontSize:11,fontWeight:700,textDecoration:"none"}}>管理画面</a>}
-          <div style={{color:WHITE,fontSize:11,fontWeight:600}}>by 株式会社Canvi</div>
-        </div>
-      </div>
+  <div style={{display:"flex",alignItems:"center",gap:12}}>
+    <div style={{width:34,height:34,borderRadius:8,background:"linear-gradient(135deg,"+RED+","+RED_DARK+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>📞</div>
+    <div>
+      <div style={{color:WHITE,fontWeight:900,fontSize:17,letterSpacing:"0.05em",lineHeight:1}}>テレアポの達人</div>
+      <div style={{color:GOLD,fontSize:9,fontWeight:700,letterSpacing:"0.1em",marginTop:1}}>AI SCRIPT GENERATOR</div>
+    </div>
+  </div>
+  <div style={{display:"flex",alignItems:"center",gap:12}}>
+    {user?<>
+      <span style={{color:WHITE,fontSize:11}}>{user.email}</span>
+      <a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:RED,color:WHITE,fontSize:11,fontWeight:700,textDecoration:"none"}}>📊 管理画面</a>
+      {(function(){
+        try {
+          var saved = localStorage.getItem('canvi_super_admins');
+          var adminList = saved ? JSON.parse(saved) : ["yuji.okabayashi@canvi.co.jp","admin@canvi.co.jp"];
+          return adminList.includes(user.email);
+        } catch(e) {
+          return ["yuji.okabayashi@canvi.co.jp","admin@canvi.co.jp"].includes(user.email);
+        }
+      })()&&(
+        <a href="/super-admin" style={{padding:"6px 14px",borderRadius:8,background:GOLD,color:DARK,fontSize:11,fontWeight:700,textDecoration:"none",boxShadow:"0 2px 8px rgba(245,166,35,0.3)"}}>👑 Super Admin</a>
+      )}
+      <button onClick={function(){signOut(auth);}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #444",background:"transparent",color:"#ccc",fontSize:11,fontWeight:700,cursor:"pointer"}}>ログアウト</button>
+    </>:<a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:"transparent",border:"1px solid #444",color:"#ccc",fontSize:11,fontWeight:700,textDecoration:"none"}}>管理画面</a>}
+    <div style={{color:WHITE,fontSize:11,fontWeight:600}}>by 株式会社Canvi</div>
+  </div>
+</div>
 
       <div style={{background:"linear-gradient(135deg,"+DARK+" 0%,#1a0005 50%,"+DARK+" 100%)",padding:"24px 40px",borderBottom:"3px solid "+RED}}>
         <div style={{maxWidth:860,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
