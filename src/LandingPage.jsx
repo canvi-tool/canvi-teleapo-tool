@@ -329,7 +329,7 @@ A2. 最短1週間で導入可能です。初回のヒアリングから設定、
 
       {/* Footer */}
       <div style={{background:DARK,padding:"40px 40px",textAlign:"center"}}>
-        <div style={{color:WHITE,fontSize:12}}>© 2024 株式会社Canvi. All rights reserved.</div>
+        <div style={{color:WHITE,fontSize:12}}>© 2026 株式会社Canvi. All rights reserved.</div>
       </div>
 
       {/* CSS Animations */}
