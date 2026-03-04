@@ -341,25 +341,25 @@ export default function SuperAdminPage(){
               </div>
 
               {selectedUser.salesChallenges && selectedUser.salesChallenges.length > 0 && (
-                <div>
-                  <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>💡 営業課題</div>
+                <div style={{marginBottom:24}}>
+                  <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>💡 営業課題（登録時アンケート）</div>
                   <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
                     {selectedUser.salesChallenges.map(function(c){
-                      return <span key={c} style={{padding:"4px 12px",borderRadius:20,background:GRAY_LIGHT,fontSize:12,color:"#666"}}>{c}</span>;
+                      return <span key={c} style={{padding:"6px 14px",borderRadius:20,background:GRAY_LIGHT,fontSize:12,color:"#666",border:"1px solid #e8e8e8"}}>{c}</span>;
                     })}
                   </div>
                 </div>
               )}
 
               <div style={{marginTop:24}}>
-                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>📋 生成履歴</div>
+                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>📋 生成履歴（直近10件）</div>
                 {generations.filter(function(g){return g.uid===selectedUser.id;}).length > 0 ? (
-                  <div style={{maxHeight:200,overflowY:"auto",border:"1px solid #e8e8e8",borderRadius:8}}>
-                    {generations.filter(function(g){return g.uid===selectedUser.id;}).map(function(g){
+                  <div style={{maxHeight:250,overflowY:"auto",border:"1px solid #e8e8e8",borderRadius:8}}>
+                    {generations.filter(function(g){return g.uid===selectedUser.id;}).slice(0,10).map(function(g){
                       return(
                         <div key={g.id} style={{padding:"12px 16px",borderBottom:"1px solid #f0f0f0",fontSize:12}}>
-                          <div style={{fontWeight:700,color:DARK}}>{g.companyName} - {g.serviceName}</div>
-                          <div style={{color:"#666",marginTop:4}}>{g.createdAt.toLocaleString("ja-JP")}</div>
+                          <div style={{fontWeight:700,color:DARK,marginBottom:2}}>{g.companyName} - {g.serviceName}</div>
+                          <div style={{color:"#999",fontSize:11}}>{g.createdAt.toLocaleString("ja-JP")}</div>
                         </div>
                       );
                     })}
