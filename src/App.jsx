@@ -704,11 +704,19 @@ if(page==="admin"&&!user) return <AuthPage/>;
 if(page==="admin"&&user) return <AdminPage/>;
 function set(k,v){setForm(function(f){return Object.assign({},f,{[k]:v});});}
 function canNext(){
-if(step===1){var ok=overviewMode==="text"?!!form.serviceOverview:overviewUploaded;return !!(form.companyName&&form.serviceName&&ok);}
-if(step===2)return !!form.callPattern;
-if(step===3)return form.industries.length>0&&!!form.area;
-if(step===4)return !!form.appealPoints;
-return true;
+  if(step===1){var ok=overviewMode==="text"?!!form.serviceOverview:overviewUploaded;return !!(form.companyName&&form.serviceName&&ok);}
+  if(step===2){
+    // STEP3に進む前にログインチェック
+    if(!user){
+      alert("🔒 STEP3以降はログインが必要です\n\n無料で会員登録してご利用ください。");
+      setPage("auth");
+      return false;
+    }
+    return !!form.callPattern;
+  }
+  if(step===3)return form.industries.length>0&&!!form.area;
+  if(step===4)return !!form.appealPoints;
+  return true;
 }
 function buildPrompt(type,fb){
 var p=CALL_PATTERNS.find(function(x){return x.id===form.callPattern;});
