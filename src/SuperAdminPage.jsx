@@ -27,6 +27,8 @@ export default function SuperAdminPage(){
   var[searchQuery,setSearchQuery]=useState("");
   var[filterStatus,setFilterStatus]=useState("all");
   var[selectedUser,setSelectedUser]=useState(null);
+  var[superAdminList,setSuperAdminList]=useState(SUPER_ADMINS);
+  var[newAdminEmail,setNewAdminEmail]=useState("");
 
   // 権限チェック
   var isSuperAdmin = auth.currentUser && SUPER_ADMINS.includes(auth.currentUser.email);
@@ -188,7 +190,8 @@ export default function SuperAdminPage(){
         <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",display:"flex",gap:8}}>
           {[
             {id:"dashboard",label:"📊 ダッシュボード"},
-            {id:"users",label:"👥 ユーザーリスト"}
+            {id:"users",label:"👥 ユーザーリスト"},
+            {id:"settings",label:"⚙️ 設定"} 
           ].map(function(t){
             var active = tab === t.id;
             return <button key={t.id} onClick={function(){setTab(t.id);}} style={{padding:"14px 24px",background:active?GRAY_LIGHT:"transparent",border:"none",borderBottom:active?"3px solid "+GOLD:"3px solid transparent",color:active?GOLD:"#666",fontWeight:active?800:600,fontSize:14,cursor:"pointer",marginBottom:-2}}>{t.label}</button>;
@@ -369,6 +372,84 @@ export default function SuperAdminPage(){
                     まだ生成履歴がありません
                   </div>
                 )}
+                {/* Settings */}
+        {tab==="settings"&&(
+          <div>
+            <div style={{background:WHITE,borderRadius:12,padding:"32px 36px",border:"1px solid #e8e8e8",marginBottom:24}}>
+              <div style={{fontSize:20,fontWeight:900,color:DARK,marginBottom:8}}>👑 スーパー管理者の管理</div>
+              <div style={{fontSize:13,color:"#666",marginBottom:24}}>スーパー管理者を追加・削除できます（注意：この変更はローカルのみで、サーバー側の設定が必要です）</div>
+              
+              <div style={{marginBottom:24}}>
+                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>現在のスーパー管理者</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {superAdminList.map(function(email){
+                    var isCurrent = email === auth.currentUser?.email;
+                    return(
+                      <div key={email} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px",background:GRAY_LIGHT,borderRadius:8,border:"1px solid #e8e8e8"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:12}}>
+                          <div style={{width:32,height:32,borderRadius:"50%",background:GOLD+"20",border:"2px solid "+GOLD,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>👑</div>
+                          <div>
+                            <div style={{fontSize:13,fontWeight:700,color:DARK}}>{email}</div>
+                            {isCurrent&&<div style={{fontSize:11,color:GOLD}}>あなた</div>}
+                          </div>
+                        </div>
+                        {!isCurrent&&(
+                          <button onClick={function(){
+                            if(confirm(email + " をスーパー管理者から削除しますか？")){
+                              setSuperAdminList(superAdminList.filter(function(e){return e!==email;}));
+                            }
+                          }} style={{padding:"6px 14px",borderRadius:6,background:"#fee",border:"1px solid #fcc",color:"#c00",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                            削除
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>新しいスーパー管理者を追加</div>
+                <div style={{display:"flex",gap:12}}>
+                  <input 
+                    type="email" 
+                    value={newAdminEmail} 
+                    onChange={function(e){setNewAdminEmail(e.target.value);}} 
+                    placeholder="example@canvi.co.jp" 
+                    style={{flex:1,padding:"12px 16px",borderRadius:8,border:"2px solid #e8e8e8",fontSize:14,outline:"none"}}
+                  />
+                  <button 
+                    onClick={function(){
+                      if(!newAdminEmail){
+                        alert("メールアドレスを入力してください");
+                        return;
+                      }
+                      if(superAdminList.includes(newAdminEmail)){
+                        alert("既に登録されています");
+                        return;
+                      }
+                      setSuperAdminList([...superAdminList, newAdminEmail]);
+                      setNewAdminEmail("");
+                      alert("✅ " + newAdminEmail + " をスーパー管理者に追加しました");
+                    }}
+                    style={{padding:"12px 24px",borderRadius:8,background:GOLD,color:WHITE,fontSize:14,fontWeight:700,border:"none",cursor:"pointer",whiteSpace:"nowrap"}}
+                  >
+                    追加
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style={{background:"#fff8ed",border:"1px solid #f5a62344",borderRadius:12,padding:"16px 20px"}}>
+              <div style={{fontSize:13,fontWeight:700,color:"#92400e",marginBottom:8}}>⚠️ 重要な注意事項</div>
+              <div style={{fontSize:12,color:"#92400e",lineHeight:1.8}}>
+                • この画面での変更はブラウザのローカルのみに反映されます<br/>
+                • 実際にスーパー管理者権限を付与するには、コード内の SUPER_ADMINS 配列を更新してデプロイする必要があります<br/>
+                • SuperAdminPage.jsx の 10-13行目を編集してください
+              </div>
+            </div>
+          </div>
+        )}
               </div>
             </div>
           </div>
