@@ -6,7 +6,7 @@ import AuthPage from "./AuthPage";
 import AdminPage from "./AdminPage";
 import LandingPage from "./LandingPage";
 import OnboardingPage from "./OnboardingPage";
-import SuperAdminPage from "./SuperAdminPage"; 
+import SuperAdminPage from "./SuperAdminPage";
 
 const CALL_PATTERNS = [
   { id: "new_list", label: "新規リスト向け", icon: "📋", desc: "未接触の新規ターゲットへのコールド架電" },
@@ -677,8 +677,6 @@ function OutputViewer({output,form,onSave,saved,onRegenerate,regenLoading}){
 
 // ===== MAIN APP =====
 export default function CanviTool(){
-  console.log("🚀 App component loaded!");
-  
   var[step,setStep]=useState(1);
   var[loading,setLoading]=useState(false);
   var[regenLoading,setRegenLoading]=useState(false);
@@ -695,10 +693,10 @@ export default function CanviTool(){
   var[user,setUser]=useState(undefined);
   var[userProfile,setUserProfile]=useState(undefined);
   var[page,setPage]=useState(
-  window.location.pathname === "/admin" ? "admin" :
-  window.location.pathname === "/super-admin" ? "super-admin" :
-  "landing"
-);
+    window.location.pathname === "/admin" ? "admin" :
+    window.location.pathname === "/super-admin" ? "super-admin" :
+    "landing"
+  );
   var[form,setForm]=useState({companyName:"",serviceName:"",serviceOverview:"",serviceUrl:"",talkScript:"",voiceNote:"",callPattern:"",industries:[],employeeRange:[],departments:[],area:"",contactRole:"",goal:"",appealPoints:"",differentiation:"",competitors:"",rcptObjections:"",contactObjections:"",situationNotes:""});
   
   // Progress states
@@ -715,101 +713,89 @@ export default function CanviTool(){
     "最終調整とブラッシュアップ中..."
   ];
 
-useEffect(function(){
-  // URLチェックを最優先で実行
-  if(window.location.pathname==="/admin") setPage("admin");
-  if(window.location.pathname==="/super-admin") setPage("super-admin");
-  
-  var unsub=onAuthStateChanged(auth,function(u){
-    console.log("🔍 Auth state changed:", u ? u.email : "not logged in");
-    setUser(u||null);
+  useEffect(function(){
+    // URLチェックを最優先で実行
+    if(window.location.pathname==="/admin") setPage("admin");
+    if(window.location.pathname==="/super-admin") setPage("super-admin");
     
-    // ユーザー情報をFirestoreから取得
-    if(u){
-      console.log("📥 Fetching user profile for:", u.uid);
-      getDoc(doc(db, "users", u.uid))
-        .then(function(docSnap){
-          console.log("📄 Firestore result:", docSnap.exists() ? docSnap.data() : "no data");
-          if(docSnap.exists()){
-            setUserProfile(docSnap.data());
-          } else {
+    var unsub=onAuthStateChanged(auth,function(u){
+      setUser(u||null);
+      
+      // ユーザー情報をFirestoreから取得
+      if(u){
+        getDoc(doc(db, "users", u.uid))
+          .then(function(docSnap){
+            if(docSnap.exists()){
+              setUserProfile(docSnap.data());
+            } else {
+              setUserProfile(null);
+            }
+          })
+          .catch(function(err){
+            console.error("User profile fetch error:", err);
             setUserProfile(null);
-          }
-        })
-        .catch(function(err){
-          console.error("❌ User profile fetch error:", err);
-          setUserProfile(null);
-        });
-    } else {
-      console.log("👤 No user, setting userProfile to null");
-      setUserProfile(null);
-    }
-  });
-  
-  return unsub;
-},[]);
-  
-  if(window.location.pathname==="/admin")setPage("admin");
-  if(window.location.pathname==="/super-admin")setPage("super-admin");
-  return unsub;
-},[]);
-
-// 管理画面からの復元データをチェック
-useEffect(function(){
-  try {
-    var restoreDataStr = localStorage.getItem('canvi_restore_data');
-    if(!restoreDataStr) return;
-    
-    var restoreData = JSON.parse(restoreDataStr);
-    console.log("📥 Restoring data from admin:", restoreData);
-    
-    // フォームに復元
-    setForm(function(prevForm){
-      return Object.assign({}, prevForm, restoreData);
+          });
+      } else {
+        setUserProfile(null);
+      }
     });
     
-    // 結果画面へジャンプ
-    if(restoreData.jumpToResult && restoreData.output){
-      console.log("🎯 Jumping to result page");
-      setPage("tool");
-      setTimeout(function(){
-        setStep(6);
-        setOutput(restoreData.output);
-        setSaved(true);
-        alert("✅ 過去の生成結果を復元しました！\n\n内容を確認して、必要に応じてブラッシュアップできます。");
-      }, 100);
+    return unsub;
+  },[]);
+
+  // 管理画面からの復元データをチェック
+  useEffect(function(){
+    try {
+      var restoreDataStr = localStorage.getItem('canvi_restore_data');
+      if(!restoreDataStr) return;
+      
+      var restoreData = JSON.parse(restoreDataStr);
+      
+      // フォームに復元
+      setForm(function(prevForm){
+        return Object.assign({}, prevForm, restoreData);
+      });
+      
+      // 結果画面へジャンプ
+      if(restoreData.jumpToResult && restoreData.output){
+        setPage("tool");
+        setTimeout(function(){
+          setStep(6);
+          setOutput(restoreData.output);
+          setSaved(true);
+          alert("✅ 過去の生成結果を復元しました！\n\n内容を確認して、必要に応じてブラッシュアップできます。");
+        }, 100);
+      }
+      
+      // 復元データを削除
+      localStorage.removeItem('canvi_restore_data');
+      
+    } catch(e) {
+      console.error("Failed to restore data:", e);
+      localStorage.removeItem('canvi_restore_data');
     }
-    
-    // 復元データを削除
-    localStorage.removeItem('canvi_restore_data');
-    
-  } catch(e) {
-    console.error("❌ Failed to restore data:", e);
-    localStorage.removeItem('canvi_restore_data');
+  }, []);
+
+  if(user===undefined || (user && userProfile===undefined)) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
+
+  // ログインしていない場合
+  if(page==="admin"&&!user) return <AuthPage/>;
+  if(page==="super-admin"&&!user) return <AuthPage/>;
+  if(page==="auth") return <AuthPage/>;
+
+  // ログイン済みだが、オンボーディング未完了の場合
+  if(user && userProfile===null){
+    return <OnboardingPage/>;
   }
-}, []);
-console.log("🔍 Current page:", page);
-console.log("🔍 Current user:", user?.email);
-console.log("🔍 Current pathname:", window.location.pathname);
+  if(user && userProfile && !userProfile.onboardingCompleted){
+    return <OnboardingPage/>;
+  }
 
-if(user===undefined || (user && userProfile===undefined)) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
+  // 通常のページ表示
+  if(page==="super-admin"&&user) return <SuperAdminPage/>;
+  if(page==="admin"&&user) return <AdminPage/>;
+  if(page==="landing") return <LandingPage onStart={function(){setPage("tool");setStep(1);}}/>;
 
-// ログインしていない場合
-if(page==="admin"&&!user) return <AuthPage/>;
-if(page==="auth") return <AuthPage/>;
-
-// ログイン済みだが、オンボーディング未完了の場合
-if(user && userProfile===null){
-  return <OnboardingPage/>;
-}
-if(user && userProfile && !userProfile.onboardingCompleted){
-  return <OnboardingPage/>;
-}
-
-// 通常のページ表示
-if(page==="super-admin"&&user) return <SuperAdminPage/>;
-if(page==="admin"&&user) return <AdminPage/>;
-if(page==="landing") return <LandingPage onStart={function(){setPage("tool");setStep(1);}}/>;
   function set(k,v){setForm(function(f){return Object.assign({},f,{[k]:v});});}
 
   function canNext(){
@@ -989,7 +975,6 @@ if(page==="landing") return <LandingPage onStart={function(){setPage("tool");set
   function saveResult(){
     if(!output||!user)return;
     
-    // 入力履歴を含めて保存
     var inputHistory = {
       companyName: form.companyName,
       serviceName: form.serviceName,
@@ -1048,6 +1033,9 @@ if(page==="landing") return <LandingPage onStart={function(){setPage("tool");set
           {user?<>
             <span style={{color:WHITE,fontSize:11}}>{user.email}</span>
             <a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:RED,color:WHITE,fontSize:11,fontWeight:700,textDecoration:"none"}}>📊 管理画面</a>
+            {["yuji.okabayashi@canvi.co.jp","admin@canvi.co.jp"].includes(user.email)&&(
+              <a href="/super-admin" style={{padding:"6px 14px",borderRadius:8,background:GOLD,color:DARK,fontSize:11,fontWeight:700,textDecoration:"none",boxShadow:"0 2px 8px rgba(245,166,35,0.3)"}}>👑 Super Admin</a>
+            )}
             <button onClick={function(){signOut(auth);}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #444",background:"transparent",color:"#ccc",fontSize:11,fontWeight:700,cursor:"pointer"}}>ログアウト</button>
           </>:<a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:"transparent",border:"1px solid #444",color:"#ccc",fontSize:11,fontWeight:700,textDecoration:"none"}}>管理画面</a>}
           <div style={{color:WHITE,fontSize:11,fontWeight:600}}>by 株式会社Canvi</div>
@@ -1150,7 +1138,6 @@ if(page==="landing") return <LandingPage onStart={function(){setPage("tool");set
           )}
           {step<6&&(
             <button onClick={function(){
-              // STEP2からSTEP3に進む時は必ずログインチェック
               if(step===2){
                 if(!user){
                   alert("🔒 STEP3以降はログインが必要です\n\n無料で会員登録してご利用ください。");
@@ -1158,7 +1145,6 @@ if(page==="landing") return <LandingPage onStart={function(){setPage("tool");set
                   return;
                 }
               }
-              // 入力チェックOKなら次へ
               if(canNext()){
                 setStep(function(s){return s+1;});
               }
