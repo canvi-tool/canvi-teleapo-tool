@@ -710,37 +710,37 @@ export default function CanviTool(){
     "最終調整とブラッシュアップ中..."
   ];
 
-  useEffect(function(){
-    var unsub=onAuthStateChanged(auth,function(u){
-      console.log("🔍 Auth state changed:", u ? u.email : "not logged in");
-      setUser(u||null);
-      });
+ useEffect(function(){
+  var unsub=onAuthStateChanged(auth,function(u){
+    console.log("🔍 Auth state changed:", u ? u.email : "not logged in");
+    setUser(u||null);
+    
+    // ユーザー情報をFirestoreから取得
+    if(u){
+      console.log("📥 Fetching user profile for:", u.uid);
+      getDoc(doc(db, "users", u.uid))
+        .then(function(docSnap){
+          console.log("📄 Firestore result:", docSnap.exists() ? docSnap.data() : "no data");
+          if(docSnap.exists()){
+            setUserProfile(docSnap.data());
+          } else {
+            setUserProfile(null);
+          }
+        })
+        .catch(function(err){
+          console.error("❌ User profile fetch error:", err);
+          setUserProfile(null);
+        });
+    } else {
+      console.log("👤 No user, setting userProfile to null");
+      setUserProfile(null);
+    }
+  });
+  
   if(window.location.pathname==="/admin")setPage("admin");
-  if(window.location.pathname==="/super-admin")setPage("super-admin");  // ← 追加
+  if(window.location.pathname==="/super-admin")setPage("super-admin");
   return unsub;
 },[]);
-      
-      // ユーザー情報をFirestoreから取得
-      if(u){
-        console.log("📥 Fetching user profile for:", u.uid);
-        getDoc(doc(db, "users", u.uid))
-          .then(function(docSnap){
-            console.log("📄 Firestore result:", docSnap.exists() ? docSnap.data() : "no data");
-            if(docSnap.exists()){
-              setUserProfile(docSnap.data());
-            } else {
-              setUserProfile(null);  // ユーザー情報が存在しない = 新規登録直後
-            }
-          })
-          .catch(function(err){
-            console.error("❌ User profile fetch error:", err);
-            setUserProfile(null);
-          });
-      } else {
-        console.log("👤 No user, setting userProfile to null");
-        setUserProfile(null);
-      }
-    });
     
     if(window.location.pathname==="/admin")setPage("admin");
     return unsub;
