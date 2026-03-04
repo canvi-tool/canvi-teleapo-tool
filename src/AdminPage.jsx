@@ -63,10 +63,10 @@ setLoading(true);
 setError(null);
 console.log("📊 Fetching data for user:", auth.currentUser.uid);
 
+// orderByなしで試す（インデックスエラー回避）
 var q = query(
   collection(db, "generations"),
-  where("uid", "==", auth.currentUser.uid),
-  orderBy("createdAt", "desc")
+  where("uid", "==", auth.currentUser.uid)
 );
 
 getDocs(q)
@@ -81,11 +81,19 @@ getDocs(q)
         createdAt: data.createdAt?.toDate() || new Date()
       });
     });
+    
+    // クライアント側でソート
+    arr.sort(function(a, b){
+      return b.createdAt - a.createdAt;
+    });
+    
     setGens(arr);
     setLoading(false);
   })
   .catch(function(err){
     console.error("❌ Firestore error:", err);
+    console.error("Error code:", err.code);
+    console.error("Error message:", err.message);
     setError("データ取得エラー: " + err.message);
     setLoading(false);
   });
@@ -113,13 +121,18 @@ return(
 if(error){
 return(
 <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:GRAY_LIGHT}}>
-<div style={{textAlign:"center",maxWidth:400}}>
+<div style={{textAlign:"center",maxWidth:500,background:WHITE,padding:40,borderRadius:16,boxShadow:"0 4px 24px rgba(0,0,0,0.1)"}}>
 <div style={{fontSize:48,marginBottom:16}}>⚠️</div>
 <div style={{fontSize:18,fontWeight:700,color:DARK,marginBottom:8}}>エラーが発生しました</div>
-<div style={{fontSize:13,color:TEXT_MUTED,marginBottom:20}}>{error}</div>
+<div style={{fontSize:13,color:TEXT_MUTED,marginBottom:20,padding:"12px 16px",background:GRAY_LIGHT,borderRadius:8,fontFamily:"monospace",wordBreak:"break-word"}}>{error}</div>
+<div style={{display:"flex",gap:8,justifyContent:"center"}}>
 <button onClick={function(){window.location.href="/";}} style={{padding:"10px 24px",borderRadius:8,background:RED,color:WHITE,fontSize:13,fontWeight:700,border:"none",cursor:"pointer"}}>
 トップページに戻る
 </button>
+<button onClick={function(){window.location.reload();}} style={{padding:"10px 24px",borderRadius:8,background:GRAY_LIGHT,color:TEXT,fontSize:13,fontWeight:700,border:"1px solid "+BORDER,cursor:"pointer"}}>
+再読み込み
+</button>
+</div>
 </div>
 </div>
 );
