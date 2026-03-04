@@ -13,6 +13,26 @@ upsell: "既存顧客アップセル向け"
 function DetailModal({gen,onClose}){
 if(!gen)return null;
 var[activeTab,setActiveTab]=useState("script");
+var[copied,setCopied]=useState(false);
+function copyContent(){
+var text = activeTab==="script" ? gen.output?.talkScript :
+activeTab==="objection" ? gen.output?.objectionHandling :
+gen.output?.faq;
+navigator.clipboard.writeText(text || "");
+setCopied(true);
+setTimeout(function(){setCopied(false);},2000);
+}
+function restoreAndGenerate(){
+// 過去のフォームデータを復元用に保存
+var restoreData = {
+companyName: gen.companyName || "",
+serviceName: gen.serviceName || "",
+callPattern: gen.callPattern || "",
+// 他のフィールドがあれば追加
+};
+localStorage.setItem('canvi_restore_data', JSON.stringify(restoreData));
+window.location.href = '/';
+}
 return(
 <div onClick={onClose} style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:20}}>
 <div onClick={function(e){e.stopPropagation();}} style={{background:WHITE,borderRadius:16,maxWidth:900,width:"100%",maxHeight:"90vh",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}}>
@@ -32,15 +52,25 @@ return(
         {id:"faq",label:"❓ FAQ"}
       ].map(function(t){
         var active=activeTab===t.id;
-        return <button key={t.id} onClick={function(){setActiveTab(t.id);}} style={{padding:"12px 20px",background:active?WHITE:"transparent",border:"none",borderBottom:active?"3px solid "+RED:"3px solid transparent",color:active?RED:TEXT_MUTED,fontWeight:active?700:500,fontSize:13,cursor:"pointer",marginBottom:-2}}>{t.label}</button>;
+        return <button key={t.id} onClick={function(){setActiveTab(t.id);setCopied(false);}} style={{padding:"12px 20px",background:active?WHITE:"transparent",border:"none",borderBottom:active?"3px solid "+RED:"3px solid transparent",color:active?RED:TEXT_MUTED,fontWeight:active?700:500,fontSize:13,cursor:"pointer",marginBottom:-2}}>{t.label}</button>;
       })}
     </div>
     
     {/* Content */}
-    <div style={{padding:24,maxHeight:"60vh",overflowY:"auto"}}>
+    <div style={{padding:24,maxHeight:"50vh",overflowY:"auto"}}>
       {activeTab==="script"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.talkScript || "データなし"}</pre>}
       {activeTab==="objection"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.objectionHandling || "データなし"}</pre>}
       {activeTab==="faq"&&<pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"inherit"}}>{gen.output?.faq || "データなし"}</pre>}
+    </div>
+    
+    {/* Footer Actions */}
+    <div style={{padding:"16px 24px",background:GRAY_LIGHT,borderTop:"1px solid "+BORDER,display:"flex",gap:12}}>
+      <button onClick={copyContent} style={{flex:1,padding:"12px 20px",borderRadius:8,background:copied?GOLD+"22":WHITE,border:"2px solid "+(copied?GOLD:BORDER),color:copied?GOLD:TEXT,fontSize:13,fontWeight:700,cursor:"pointer",transition:"all 0.2s"}}>
+        {copied?"✓ コピー済み":"📋 コピー"}
+      </button>
+      <button onClick={restoreAndGenerate} style={{flex:1,padding:"12px 20px",borderRadius:8,background:"linear-gradient(135deg,"+RED+","+RED_DARK+")",border:"none",color:WHITE,fontSize:13,fontWeight:800,cursor:"pointer",boxShadow:"0 4px 16px rgba(232,0,29,0.2)"}}>
+        🔄 この設定で新規生成
+      </button>
     </div>
   </div>
 </div>
@@ -63,7 +93,6 @@ setLoading(true);
 setError(null);
 console.log("📊 Fetching data for user:", auth.currentUser.uid);
 
-// orderByなしで試す（インデックスエラー回避）
 var q = query(
   collection(db, "generations"),
   where("uid", "==", auth.currentUser.uid)
@@ -82,7 +111,6 @@ getDocs(q)
       });
     });
     
-    // クライアント側でソート
     arr.sort(function(a, b){
       return b.createdAt - a.createdAt;
     });
@@ -157,7 +185,7 @@ return(
   <div style={{maxWidth:1200,margin:"0 auto",padding:"40px 24px"}}>
     {/* Tabs */}
     <div style={{display:"flex",gap:8,marginBottom:32}}>
-      {[{id:"list",label:"📋 生成履歴",icon:"📋"},{id:"stats",label:"📊 統計",icon:"📊"}].map(function(t){
+      {[{id:"list",label:"📋 生成履歴"},{id:"stats",label:"📊 統計"}].map(function(t){
         var active=tab===t.id;
         return <button key={t.id} onClick={function(){setTab(t.id);}} style={{padding:"12px 24px",borderRadius:10,background:active?WHITE:GRAY_LIGHT,border:"2px solid "+(active?RED:BORDER),color:active?RED:TEXT_MUTED,fontWeight:active?800:600,fontSize:14,cursor:"pointer",boxShadow:active?"0 4px 16px rgba(232,0,29,0.1)":"none"}}>{t.label}</button>;
       })}
