@@ -797,6 +797,7 @@ export default function CanviTool(){
 
   // 通常のページ表示
   if(page==="admin"&&user) return <AdminPage/>;
+  if(page==="super-admin"&&user) return <SuperAdminPage/>;
   if(page==="landing") return <LandingPage onStart={function(){setPage("tool");setStep(1);}}/>;
 
   function set(k,v){setForm(function(f){return Object.assign({},f,{[k]:v});});}
