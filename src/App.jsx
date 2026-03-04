@@ -5,7 +5,7 @@ import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/fires
 import AuthPage from "./AuthPage";
 import AdminPage from "./AdminPage";
 import LandingPage from "./LandingPage";
-import OnboardingPage from "./OnboardingPage"; 
+import OnboardingPage from "./OnboardingPage";
 
 const CALL_PATTERNS = [
   { id: "new_list", label: "新規リスト向け", icon: "📋", desc: "未接触の新規ターゲットへのコールド架電" },
@@ -676,6 +676,8 @@ function OutputViewer({output,form,onSave,saved,onRegenerate,regenLoading}){
 
 // ===== MAIN APP =====
 export default function CanviTool(){
+  console.log("🚀 App component loaded!");
+  
   var[step,setStep]=useState(1);
   var[loading,setLoading]=useState(false);
   var[regenLoading,setRegenLoading]=useState(false);
@@ -690,7 +692,7 @@ export default function CanviTool(){
   var[scriptUploaded,setScriptUploaded]=useState(false);
   var[scriptFileName,setScriptFileName]=useState("");
   var[user,setUser]=useState(undefined);
-  var[userProfile,setUserProfile]=useState(undefined); 
+  var[userProfile,setUserProfile]=useState(undefined);
   var[page,setPage]=useState("landing");
   var[form,setForm]=useState({companyName:"",serviceName:"",serviceOverview:"",serviceUrl:"",talkScript:"",voiceNote:"",callPattern:"",industries:[],employeeRange:[],departments:[],area:"",contactRole:"",goal:"",appealPoints:"",differentiation:"",competitors:"",rcptObjections:"",contactObjections:"",situationNotes:""});
   
@@ -709,7 +711,32 @@ export default function CanviTool(){
   ];
 
   useEffect(function(){
-    var unsub=onAuthStateChanged(auth,function(u){setUser(u||null);});
+    var unsub=onAuthStateChanged(auth,function(u){
+      console.log("🔍 Auth state changed:", u ? u.email : "not logged in");
+      setUser(u||null);
+      
+      // ユーザー情報をFirestoreから取得
+      if(u){
+        console.log("📥 Fetching user profile for:", u.uid);
+        getDoc(doc(db, "users", u.uid))
+          .then(function(docSnap){
+            console.log("📄 Firestore result:", docSnap.exists() ? docSnap.data() : "no data");
+            if(docSnap.exists()){
+              setUserProfile(docSnap.data());
+            } else {
+              setUserProfile(null);  // ユーザー情報が存在しない = 新規登録直後
+            }
+          })
+          .catch(function(err){
+            console.error("❌ User profile fetch error:", err);
+            setUserProfile(null);
+          });
+      } else {
+        console.log("👤 No user, setting userProfile to null");
+        setUserProfile(null);
+      }
+    });
+    
     if(window.location.pathname==="/admin")setPage("admin");
     return unsub;
   },[]);
@@ -749,52 +776,33 @@ export default function CanviTool(){
     }
   }, []);
 
-if(user===undefined || (user && userProfile===undefined)) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
+  if(user===undefined || (user && userProfile===undefined)) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
 
-// ログインしていない場合
-if(page==="admin"&&!user) return <AuthPage/>;
-if(page==="auth") return <AuthPage/>;
+  // ログインしていない場合
+  if(page==="admin"&&!user) return <AuthPage/>;
+  if(page==="auth") return <AuthPage/>;
 
-// ログイン済みだが、オンボーディング未完了の場合
-if(user && userProfile===null){
-  return <OnboardingPage/>;
-}
-if(user && userProfile && !userProfile.onboardingCompleted){
-  return <OnboardingPage/>;
-}
+  // ログイン済みだが、オンボーディング未完了の場合
+  if(user && userProfile===null){
+    return <OnboardingPage/>;
+  }
+  if(user && userProfile && !userProfile.onboardingCompleted){
+    return <OnboardingPage/>;
+  }
 
-// 通常のページ表示
-if(page==="admin"&&user) return <AdminPage/>;
-if(page==="landing") return <LandingPage onStart={function(){setPage("tool");setStep(1);}}/>;
+  // 通常のページ表示
+  if(page==="admin"&&user) return <AdminPage/>;
+  if(page==="landing") return <LandingPage onStart={function(){setPage("tool");setStep(1);}}/>;
 
   function set(k,v){setForm(function(f){return Object.assign({},f,{[k]:v});});}
 
- function canNext(){
-  if(step===1){var ok=overviewMode==="text"?!!form.serviceOverview:overviewUploaded;return !!(form.companyName&&form.serviceName&&ok);}
-  if(step===2)return !!form.callPattern;  // ← ここはログインチェックなし
-  if(step===3)return form.industries.length>0&&!!form.area;
-  if(step===4)return !!form.appealPoints;
-  return true;
-   }
-  // 「次へ」ボタンの onClick 処理を修正（約1050行目あたり）
-
-{step<6&&(
-  <button onClick={function(){
-    // STEP2からSTEP3に進む時だけログインチェック
-    if(step===2 && !user){
-      alert("🔒 STEP3以降はログインが必要です\n\n無料で会員登録してご利用ください。");
-      setPage("auth");
-      return;  // ← ここで止める
-    }
-    
-    // canNext()がtrueの場合のみ次へ進む
-    if(canNext()){
-      setStep(function(s){return s+1;});
-    }
-  }} disabled={!canNext()} style={{padding:"13px 36px",borderRadius:10,border:"none",background:canNext()?"linear-gradient(135deg,"+RED+","+RED_DARK+")":"#ddd",color:WHITE,fontWeight:800,fontSize:14,cursor:canNext()?"pointer":"not-allowed",marginLeft:"auto",boxShadow:canNext()?"0 4px 16px rgba(232,0,29,0.25)":"none"}}>
-    次へ →
-  </button>
-)}
+  function canNext(){
+    if(step===1){var ok=overviewMode==="text"?!!form.serviceOverview:overviewUploaded;return !!(form.companyName&&form.serviceName&&ok);}
+    if(step===2)return !!form.callPattern;
+    if(step===3)return form.industries.length>0&&!!form.area;
+    if(step===4)return !!form.appealPoints;
+    return true;
+  }
 
   function buildPrompt(type,fb){
     var p=CALL_PATTERNS.find(function(x){return x.id===form.callPattern;});
@@ -1125,8 +1133,20 @@ if(page==="landing") return <LandingPage onStart={function(){setPage("tool");set
             <button onClick={function(){setStep(function(s){return s-1;});}} style={{padding:"13px 30px",borderRadius:10,border:"2px solid "+BORDER,background:WHITE,color:TEXT,fontWeight:700,fontSize:14,cursor:"pointer"}}>← 戻る</button>
           )}
           {step<6&&(
-            // 1114行目の修正
-<button onClick={function(){if(step===2){if(!user){alert("🔒 STEP3以降はログインが必要です\n\n無料で会員登録してご利用ください。");window.location.href="/admin";return;}}if(canNext()){setStep(function(s){return s+1;});}}} disabled={!canNext()} style={{padding:"13px 36px",borderRadius:10,border:"none",background:canNext()?"linear-gradient(135deg,"+RED+","+RED_DARK+")":"#ddd",color:WHITE,fontWeight:800,fontSize:14,cursor:canNext()?"pointer":"not-allowed",marginLeft:"auto",boxShadow:canNext()?"0 4px 16px rgba(232,0,29,0.25)":"none"}}>
+            <button onClick={function(){
+              // STEP2からSTEP3に進む時は必ずログインチェック
+              if(step===2){
+                if(!user){
+                  alert("🔒 STEP3以降はログインが必要です\n\n無料で会員登録してご利用ください。");
+                  window.location.href="/admin";
+                  return;
+                }
+              }
+              // 入力チェックOKなら次へ
+              if(canNext()){
+                setStep(function(s){return s+1;});
+              }
+            }} disabled={!canNext()} style={{padding:"13px 36px",borderRadius:10,border:"none",background:canNext()?"linear-gradient(135deg,"+RED+","+RED_DARK+")":"#ddd",color:WHITE,fontWeight:800,fontSize:14,cursor:canNext()?"pointer":"not-allowed",marginLeft:"auto",boxShadow:canNext()?"0 4px 16px rgba(232,0,29,0.25)":"none"}}>
               次へ →
             </button>
           )}
