@@ -439,46 +439,42 @@ display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrin
 }
 // ===== OBJECTION VIEWER =====
 function ObjectionViewer({content}){
-var[open,setOpen]=useState({});
-if(!content) return <div style={{color:"#666",fontSize:13,padding:20,textAlign:"center"}}>データがありません</div>;
-var blocks=content.split(/\n(?=❌)/).filter(function(b){return b.trim();});
-return(
-<div style={{display:"flex",flexDirection:"column",gap:10}}>
-{blocks.map(function(block,i){
-var lines=block.split("\n").filter(function(l){return l.trim();});
-var headline=lines[0].replace(/^❌\s*/,"").replace(/^「|」$/g,"").trim();
-var isOpen=open[i]!==false;
-return(
-<div key={i} style={{borderRadius:12,overflow:"hidden",border:"1px solid rgba(232,0,29,0.28)"}}>
-<button onClick={function(){setOpen(function(o){var n=Object.assign({},o);n[i]=!isOpen;return n;});}}
-style={{width:"100%",background:"linear-gradient(135deg,"+BG+","+SURFACE+")",borderTop:"3px solid "+RED,
-padding:"12px 16px",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
-<div style={{width:28,height:28,borderRadius:6,background:"rgba(232,0,29,0.12)",border:"1px solid rgba(232,0,29,0.3)",
-display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>❌</div>
-<span style={{fontWeight:800,fontSize:13,color:WHITE,flex:1,textAlign:"left"}}>「{headline}」</span>
-<span style={{color:RED,fontSize:11,opacity:0.7}}>{isOpen?"▲":"▼"}</span>
-</button>
-{isOpen&&(
-<div style={{background:SURFACE,padding:"12px 14px",display:"flex",flexDirection:"column",gap:7}}>
-<div style={{background:"rgba(232,0,29,0.06)",borderLeft:"3px solid "+RED,borderRadius:"0 7px 7px 0",padding:"8px 12px",marginBottom:2}}>
-<div style={{fontFamily:"monospace",fontSize:9,color:"#e87a7a",letterSpacing:"1px",marginBottom:2,display:"flex",alignItems:"center",gap:5}}>
-<span style={{width:4,height:4,borderRadius:"50%",background:"#e87a7a",display:"inline-block"}}></span>相手の言葉
-</div>
-<div style={{fontSize:13,color:"#ff9999",lineHeight:1.8}}>「{headline}」</div>
-</div>
-{lines.slice(1).map(function(line,j){
-var t=line.trim();if(!t)return null;
-if(/^1[.．]/.test(t)) return(
-<div key={j} style={{borderRadius:7,overflow:"hidden"}}>
-<div style={{background:"#1e3050",padding:"3px 10px",fontSize:9,fontWeight:800,color:"#7aaed4",display:"inline-block",borderRadius:"5px 5px 0 0"}}>① 共感</div>
-<div style={{background:"rgba(30,48,80,0.5)",border:"1px solid rgba(74,120,200,0.18)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#a8bdd4",lineHeight:1.8}}>{t.replace(/^1[.．]\s*/,"")}</div>
-</div>
-);
-if(/^2[.．]/.test(<invoke name="str_replace">
-<parameter name="description">App.jsxの続きを完成させる</parameter>
-<parameter name="path">/tmp/App_final_complete.jsx</parameter>
-<parameter name="old_str">                  if(/^2[\.．]/.test(</parameter>
-<parameter name="new_str">                  if(/^2[\.．]/.test(t)) return(
+  var[open,setOpen]=useState({});
+  if(!content) return <div style={{color:"#666",fontSize:13,padding:20,textAlign:"center"}}>データがありません</div>;
+  var blocks=content.split(/\n(?=❌)/).filter(function(b){return b.trim();});
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+      {blocks.map(function(block,i){
+        var lines=block.split("\n").filter(function(l){return l.trim();});
+        var headline=lines[0].replace(/^❌\s*/,"").replace(/^「|」$/g,"").trim();
+        var isOpen=open[i]!==false;
+        return(
+          <div key={i} style={{borderRadius:12,overflow:"hidden",border:"1px solid rgba(232,0,29,0.28)"}}>
+            <button onClick={function(){setOpen(function(o){var n=Object.assign({},o);n[i]=!isOpen;return n;});}}
+              style={{width:"100%",background:"linear-gradient(135deg,"+BG+","+SURFACE+")",borderTop:"3px solid "+RED,
+                padding:"12px 16px",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:28,height:28,borderRadius:6,background:"rgba(232,0,29,0.12)",border:"1px solid rgba(232,0,29,0.3)",
+                display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>❌</div>
+              <span style={{fontWeight:800,fontSize:13,color:WHITE,flex:1,textAlign:"left"}}>「{headline}」</span>
+              <span style={{color:RED,fontSize:11,opacity:0.7}}>{isOpen?"▲":"▼"}</span>
+            </button>
+            {isOpen&&(
+              <div style={{background:SURFACE,padding:"12px 14px",display:"flex",flexDirection:"column",gap:7}}>
+                <div style={{background:"rgba(232,0,29,0.06)",borderLeft:"3px solid "+RED,borderRadius:"0 7px 7px 0",padding:"8px 12px",marginBottom:2}}>
+                  <div style={{fontFamily:"monospace",fontSize:9,color:"#e87a7a",letterSpacing:"1px",marginBottom:2,display:"flex",alignItems:"center",gap:5}}>
+                    <span style={{width:4,height:4,borderRadius:"50%",background:"#e87a7a",display:"inline-block"}}></span>相手の言葉
+                  </div>
+                  <div style={{fontSize:13,color:"#ff9999",lineHeight:1.8}}>「{headline}」</div>
+                </div>
+                {lines.slice(1).map(function(line,j){
+                  var t=line.trim();if(!t)return null;
+                  if(/^1[\.．]/.test(t)) return(
+                    <div key={j} style={{borderRadius:7,overflow:"hidden"}}>
+                      <div style={{background:"#1e3050",padding:"3px 10px",fontSize:9,fontWeight:800,color:"#7aaed4",display:"inline-block",borderRadius:"5px 5px 0 0"}}>① 共感</div>
+                      <div style={{background:"rgba(30,48,80,0.5)",border:"1px solid rgba(74,120,200,0.18)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#a8bdd4",lineHeight:1.8}}>{t.replace(/^1[\.．]\s*/,"")}</div>
+                    </div>
+                  );
+                  if(/^2[\.．]/.test(t)) return(
                     <div key={j} style={{borderRadius:7,overflow:"hidden"}}>
                       <div style={{background:"#3a2800",padding:"3px 10px",fontSize:9,fontWeight:800,color:GOLD,display:"inline-block",borderRadius:"5px 5px 0 0"}}>② 転換</div>
                       <div style={{background:"rgba(58,40,0,0.5)",border:"1px solid rgba(245,166,35,0.18)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#d4a84b",lineHeight:1.8}}>{t.replace(/^2[\.．]\s*/,"")}</div>
