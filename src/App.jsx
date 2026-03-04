@@ -714,6 +714,11 @@ export default function CanviTool(){
     var unsub=onAuthStateChanged(auth,function(u){
       console.log("🔍 Auth state changed:", u ? u.email : "not logged in");
       setUser(u||null);
+      });
+  if(window.location.pathname==="/admin")setPage("admin");
+  if(window.location.pathname==="/super-admin")setPage("super-admin");  // ← 追加
+  return unsub;
+},[]);
       
       // ユーザー情報をFirestoreから取得
       if(u){
