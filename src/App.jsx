@@ -775,9 +775,9 @@ function completeProgress(type){
 }
 
 // Start all sections with slight delay
-setTimeout(function(){ startProgress('script', 50); }, 200);
-setTimeout(function(){ startProgress('objection', 35); }, 500);
-setTimeout(function(){ startProgress('faq', 20); }, 800);
+setTimeout(function(){ startProgress('script', 25); }, 200);
+setTimeout(function(){ startProgress('objection', 20); }, 500);
+setTimeout(function(){ startProgress('faq', 15); }, 800);
 
 var calls=["script","objection","faq"].map(function(type){
   return fetch("/api/generate",{
@@ -854,7 +854,10 @@ setSaved(false);setRegenLoading(false);
 function saveResult(){
 if(!output||!user)return;
 addDoc(collection(db,"generations"),{uid:user.uid,email:user.email,companyName:form.companyName,serviceName:form.serviceName,callPattern:form.callPattern,output:output,createdAt:serverTimestamp()})
-.then(function(){setSaved(true);}).catch(function(){alert("保存に失敗しました。");});
+.then(function(){setSaved(true);}).catch(function(err){
+console.error("Save error:",err);
+alert("保存に失敗しました: "+err.message);
+});
 }
 function resetToTop(){
 setStep(1);setOutput(null);setVersions([]);setCurrentId(null);setSaved(false);
@@ -862,6 +865,7 @@ setForm({companyName:"",serviceName:"",serviceOverview:"",serviceUrl:"",talkScri
 }
 return(
 <div style={{minHeight:"100vh",background:"#f7f7f7",fontFamily:"'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif",paddingBottom:80}}>
+{/* HEADER - ここを修正 */}
 <div style={{background:DARK,padding:"0 40px",display:"flex",alignItems:"center",justifyContent:"space-between",height:56,boxShadow:"0 2px 20px rgba(0,0,0,0.3)",position:"sticky",top:0,zIndex:100}}>
 <div style={{display:"flex",alignItems:"center",gap:12}}>
 <div style={{width:34,height:34,borderRadius:8,background:"linear-gradient(135deg,"+RED+","+RED_DARK+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>📞</div>
@@ -871,7 +875,11 @@ return(
 </div>
 </div>
 <div style={{display:"flex",alignItems:"center",gap:12}}>
-{user?<><span style={{color:"#aaa",fontSize:11}}>{user.email}</span><button onClick={function(){signOut(auth);}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #444",background:"transparent",color:"#ccc",fontSize:11,fontWeight:700,cursor:"pointer"}}>ログアウト</button></>:<a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:"transparent",border:"1px solid #444",color:"#ccc",fontSize:11,fontWeight:700,textDecoration:"none"}}>管理画面</a>}
+{user?<>
+<span style={{color:"#aaa",fontSize:11}}>{user.email}</span>
+<a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:RED,color:WHITE,fontSize:11,fontWeight:700,textDecoration:"none"}}>📊 管理画面</a>
+<button onClick={function(){signOut(auth);}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #444",background:"transparent",color:"#ccc",fontSize:11,fontWeight:700,cursor:"pointer"}}>ログアウト</button>
+</>:<a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:"transparent",border:"1px solid #444",color:"#ccc",fontSize:11,fontWeight:700,textDecoration:"none"}}>管理画面</a>}
 <div style={{color:"#555",fontSize:11,fontWeight:600}}>by 株式会社Canvi</div>
 </div>
 </div>
