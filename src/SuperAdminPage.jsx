@@ -191,7 +191,7 @@ export default function SuperAdminPage(){
           {[
             {id:"dashboard",label:"📊 ダッシュボード"},
             {id:"users",label:"👥 ユーザーリスト"},
-            {id:"settings",label:"⚙️ 設定"} 
+            {id:"settings",label:"⚙️ 設定"}
           ].map(function(t){
             var active = tab === t.id;
             return <button key={t.id} onClick={function(){setTab(t.id);}} style={{padding:"14px 24px",background:active?GRAY_LIGHT:"transparent",border:"none",borderBottom:active?"3px solid "+GOLD:"3px solid transparent",color:active?GOLD:"#666",fontWeight:active?800:600,fontSize:14,cursor:"pointer",marginBottom:-2}}>{t.label}</button>;
@@ -310,69 +310,8 @@ export default function SuperAdminPage(){
             )}
           </div>
         )}
-      </div>
 
-      {/* User Detail Modal */}
-      {selectedUser&&(
-        <div onClick={function(){setSelectedUser(null);}} style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:20}}>
-          <div onClick={function(e){e.stopPropagation();}} style={{background:WHITE,borderRadius:16,width:700,maxWidth:"95%",maxHeight:"90vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}}>
-            <div style={{background:DARK,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-              <div>
-                <div style={{fontSize:18,fontWeight:900,color:WHITE}}>{selectedUser.email}</div>
-                <div style={{fontSize:12,color:"#aaa"}}>{selectedUser.companyName || "会社名未登録"}</div>
-              </div>
-              <button onClick={function(){setSelectedUser(null);}} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.1)",border:"none",color:WHITE,fontSize:20,cursor:"pointer"}}>×</button>
-            </div>
-            
-            <div style={{padding:"24px 28px"}}>
-              <div style={{marginBottom:24}}>
-                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>📋 基本情報</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>氏名</div><div style={{fontSize:13,color:DARK}}>{selectedUser.name || "-"}</div></div>
-                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>電話番号</div><div style={{fontSize:13,color:DARK}}>{selectedUser.phone || "-"}</div></div>
-                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>業界</div><div style={{fontSize:13,color:DARK}}>{selectedUser.industry || "-"}</div></div>
-                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>登録日</div><div style={{fontSize:13,color:DARK}}>{selectedUser.createdAt.toLocaleString("ja-JP")}</div></div>
-                </div>
-              </div>
-
-              <div style={{marginBottom:24}}>
-                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>📊 利用統計</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>総生成数</div><div style={{fontSize:20,fontWeight:900,color:RED}}>{selectedUser.genCount}</div></div>
-                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>最終利用日</div><div style={{fontSize:13,color:DARK}}>{selectedUser.lastGenDate ? selectedUser.lastGenDate.toLocaleString("ja-JP") : "-"}</div></div>
-                </div>
-              </div>
-
-              {selectedUser.salesChallenges && selectedUser.salesChallenges.length > 0 && (
-                <div style={{marginBottom:24}}>
-                  <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>💡 営業課題（登録時アンケート）</div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-                    {selectedUser.salesChallenges.map(function(c){
-                      return <span key={c} style={{padding:"6px 14px",borderRadius:20,background:GRAY_LIGHT,fontSize:12,color:"#666",border:"1px solid #e8e8e8"}}>{c}</span>;
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div style={{marginTop:24}}>
-                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>📋 生成履歴（直近10件）</div>
-                {generations.filter(function(g){return g.uid===selectedUser.id;}).length > 0 ? (
-                  <div style={{maxHeight:250,overflowY:"auto",border:"1px solid #e8e8e8",borderRadius:8}}>
-                    {generations.filter(function(g){return g.uid===selectedUser.id;}).slice(0,10).map(function(g){
-                      return(
-                        <div key={g.id} style={{padding:"12px 16px",borderBottom:"1px solid #f0f0f0",fontSize:12}}>
-                          <div style={{fontWeight:700,color:DARK,marginBottom:2}}>{g.companyName} - {g.serviceName}</div>
-                          <div style={{color:"#999",fontSize:11}}>{g.createdAt.toLocaleString("ja-JP")}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div style={{textAlign:"center",padding:24,background:GRAY_LIGHT,borderRadius:8,fontSize:13,color:"#666"}}>
-                    まだ生成履歴がありません
-                  </div>
-                )}
-                {/* Settings */}
+        {/* Settings */}
         {tab==="settings"&&(
           <div>
             <div style={{background:WHITE,borderRadius:12,padding:"32px 36px",border:"1px solid #e8e8e8",marginBottom:24}}>
@@ -450,6 +389,68 @@ export default function SuperAdminPage(){
             </div>
           </div>
         )}
+      </div>
+
+      {/* User Detail Modal */}
+      {selectedUser&&(
+        <div onClick={function(){setSelectedUser(null);}} style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:20}}>
+          <div onClick={function(e){e.stopPropagation();}} style={{background:WHITE,borderRadius:16,width:700,maxWidth:"95%",maxHeight:"90vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}}>
+            <div style={{background:DARK,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <div>
+                <div style={{fontSize:18,fontWeight:900,color:WHITE}}>{selectedUser.email}</div>
+                <div style={{fontSize:12,color:"#aaa"}}>{selectedUser.companyName || "会社名未登録"}</div>
+              </div>
+              <button onClick={function(){setSelectedUser(null);}} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.1)",border:"none",color:WHITE,fontSize:20,cursor:"pointer"}}>×</button>
+            </div>
+            
+            <div style={{padding:"24px 28px"}}>
+              <div style={{marginBottom:24}}>
+                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>📋 基本情報</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>氏名</div><div style={{fontSize:13,color:DARK}}>{selectedUser.name || "-"}</div></div>
+                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>電話番号</div><div style={{fontSize:13,color:DARK}}>{selectedUser.phone || "-"}</div></div>
+                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>業界</div><div style={{fontSize:13,color:DARK}}>{selectedUser.industry || "-"}</div></div>
+                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>登録日</div><div style={{fontSize:13,color:DARK}}>{selectedUser.createdAt.toLocaleString("ja-JP")}</div></div>
+                </div>
+              </div>
+
+              <div style={{marginBottom:24}}>
+                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>📊 利用統計</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>総生成数</div><div style={{fontSize:20,fontWeight:900,color:RED}}>{selectedUser.genCount}</div></div>
+                  <div><div style={{fontSize:11,color:"#666",marginBottom:4}}>最終利用日</div><div style={{fontSize:13,color:DARK}}>{selectedUser.lastGenDate ? selectedUser.lastGenDate.toLocaleString("ja-JP") : "-"}</div></div>
+                </div>
+              </div>
+
+              {selectedUser.salesChallenges && selectedUser.salesChallenges.length > 0 && (
+                <div style={{marginBottom:24}}>
+                  <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>💡 営業課題（登録時アンケート）</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+                    {selectedUser.salesChallenges.map(function(c){
+                      return <span key={c} style={{padding:"6px 14px",borderRadius:20,background:GRAY_LIGHT,fontSize:12,color:"#666",border:"1px solid #e8e8e8"}}>{c}</span>;
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div style={{marginTop:24}}>
+                <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>📋 生成履歴（直近10件）</div>
+                {generations.filter(function(g){return g.uid===selectedUser.id;}).length > 0 ? (
+                  <div style={{maxHeight:250,overflowY:"auto",border:"1px solid #e8e8e8",borderRadius:8}}>
+                    {generations.filter(function(g){return g.uid===selectedUser.id;}).slice(0,10).map(function(g){
+                      return(
+                        <div key={g.id} style={{padding:"12px 16px",borderBottom:"1px solid #f0f0f0",fontSize:12}}>
+                          <div style={{fontWeight:700,color:DARK,marginBottom:2}}>{g.companyName} - {g.serviceName}</div>
+                          <div style={{color:"#999",fontSize:11}}>{g.createdAt.toLocaleString("ja-JP")}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div style={{textAlign:"center",padding:24,background:GRAY_LIGHT,borderRadius:8,fontSize:13,color:"#666"}}>
+                    まだ生成履歴がありません
+                  </div>
+                )}
               </div>
             </div>
           </div>
