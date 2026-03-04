@@ -755,21 +755,28 @@ export default function CanviTool(){
 
   function set(k,v){setForm(function(f){return Object.assign({},f,{[k]:v});});}
 
-  function canNext(){
-    if(step===1){var ok=overviewMode==="text"?!!form.serviceOverview:overviewUploaded;return !!(form.companyName&&form.serviceName&&ok);}
-    if(step===2){
-      // STEP3に進む前にログインチェック
-      if(!user){
-        alert("🔒 STEP3以降はログインが必要です\n\n無料で会員登録してご利用ください。");
-        setPage("auth");
-        return false;
-      }
-      return !!form.callPattern;
+ function canNext(){
+  if(step===1){var ok=overviewMode==="text"?!!form.serviceOverview:overviewUploaded;return !!(form.companyName&&form.serviceName&&ok);}
+  if(step===2)return !!form.callPattern;  // ← ここはログインチェックなし
+  if(step===3)return form.industries.length>0&&!!form.area;
+  if(step===4)return !!form.appealPoints;
+  return true;
+   }
+  {step<6&&(
+  <button onClick={function(){
+    // STEP2からSTEP3に進む時だけログインチェック
+    if(step===2 && !user){
+      alert("🔒 STEP3以降はログインが必要です\n\n無料で会員登録してご利用ください。");
+      setPage("auth");
+      return;
     }
-    if(step===3)return form.industries.length>0&&!!form.area;
-    if(step===4)return !!form.appealPoints;
-    return true;
-  }
+    if(canNext()){
+      setStep(function(s){return s+1;});
+    }
+  }} disabled={!canNext()} style={{padding:"13px 36px",borderRadius:10,border:"none",background:canNext()?"linear-gradient(135deg,"+RED+","+RED_DARK+")":"#ddd",color:WHITE,fontWeight:800,fontSize:14,cursor:canNext()?"pointer":"not-allowed",marginLeft:"auto",boxShadow:canNext()?"0 4px 16px rgba(232,0,29,0.25)":"none"}}>
+    次へ →
+  </button>
+)}
 
   function buildPrompt(type,fb){
     var p=CALL_PATTERNS.find(function(x){return x.id===form.callPattern;});
