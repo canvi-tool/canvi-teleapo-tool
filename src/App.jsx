@@ -29,9 +29,7 @@ var total=(progress.script+progress.objection+progress.faq)/3;
 var allDone=status.script==="done"&&status.objection==="done"&&status.faq==="done";
 return(
 <div style={{background:WHITE,borderRadius:16,padding:"40px 36px",border:"1px solid "+BORDER,boxShadow:"0 8px 40px rgba(0,0,0,0.12)",position:"relative",overflow:"hidden"}}>
-{/* Background pulse effect */}
 <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,background:"radial-gradient(circle at 30% 50%,rgba(232,0,29,0.03),transparent 70%)",animation:allDone?"none":"pulse 3s infinite",pointerEvents:"none"}}/>
-  {/* Main title */}
   <div style={{textAlign:"center",marginBottom:32,position:"relative",zIndex:1}}>
     <div style={{fontSize:48,marginBottom:12,animation:allDone?"celebrate 0.6s ease-out":"none"}}>
       {allDone?"🎉":"⚡"}
@@ -44,7 +42,6 @@ return(
     </div>
   </div>
 
-  {/* Total progress bar */}
   <div style={{marginBottom:28,position:"relative",zIndex:1}}>
     <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
       <span style={{fontSize:13,fontWeight:700,color:TEXT}}>全体進捗</span>
@@ -60,13 +57,11 @@ return(
         position:"relative",
         overflow:"hidden"
       }}>
-        {/* Shine effect */}
         {!allDone&&<div style={{position:"absolute",top:0,left:0,right:0,bottom:0,background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)",animation:"shine 2s infinite"}}/>}
       </div>
     </div>
   </div>
 
-  {/* Rotating messages */}
   {!allDone&&(
     <div style={{background:GOLD+"08",border:"1px solid "+GOLD+"22",borderRadius:12,padding:"14px 18px",marginBottom:24,textAlign:"center",minHeight:50,display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{fontSize:13,color:"#92400e",fontWeight:600,animation:"fadeSlide 0.5s ease-in"}}>
@@ -75,7 +70,6 @@ return(
     </div>
   )}
 
-  {/* Section progress */}
   <div style={{display:"flex",flexDirection:"column",gap:16,position:"relative",zIndex:1}}>
     {items.map(function(item,idx){
       var p=progress[item.id];
@@ -114,7 +108,6 @@ return(
     })}
   </div>
 
-  {/* Completion message */}
   {allDone&&(
     <div style={{marginTop:24,textAlign:"center",animation:"fadeIn 0.5s ease-in"}}>
       <div style={{fontSize:14,fontWeight:700,color:"#22c55e",marginBottom:4}}>✨ 3つのセクションがすべて完了しました</div>
@@ -122,7 +115,6 @@ return(
     </div>
   )}
 
-  {/* CSS animations */}
   <style>{`
     @keyframes pulse {
       0%, 100% { opacity: 0.3; }
@@ -439,62 +431,62 @@ display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrin
 }
 // ===== OBJECTION VIEWER =====
 function ObjectionViewer({content}){
-  var[open,setOpen]=useState({});
-  if(!content) return <div style={{color:"#666",fontSize:13,padding:20,textAlign:"center"}}>データがありません</div>;
-  var blocks=content.split(/\n(?=❌)/).filter(function(b){return b.trim();});
-  return(
-    <div style={{display:"flex",flexDirection:"column",gap:10}}>
-      {blocks.map(function(block,i){
-        var lines=block.split("\n").filter(function(l){return l.trim();});
-        var headline=lines[0].replace(/^❌\s*/,"").replace(/^「|」$/g,"").trim();
-        var isOpen=open[i]!==false;
-        return(
-          <div key={i} style={{borderRadius:12,overflow:"hidden",border:"1px solid rgba(232,0,29,0.28)"}}>
-            <button onClick={function(){setOpen(function(o){var n=Object.assign({},o);n[i]=!isOpen;return n;});}}
-              style={{width:"100%",background:"linear-gradient(135deg,"+BG+","+SURFACE+")",borderTop:"3px solid "+RED,
-                padding:"12px 16px",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:28,height:28,borderRadius:6,background:"rgba(232,0,29,0.12)",border:"1px solid rgba(232,0,29,0.3)",
-                display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>❌</div>
-              <span style={{fontWeight:800,fontSize:13,color:WHITE,flex:1,textAlign:"left"}}>「{headline}」</span>
-              <span style={{color:RED,fontSize:11,opacity:0.7}}>{isOpen?"▲":"▼"}</span>
-            </button>
-            {isOpen&&(
-              <div style={{background:SURFACE,padding:"12px 14px",display:"flex",flexDirection:"column",gap:7}}>
-                <div style={{background:"rgba(232,0,29,0.06)",borderLeft:"3px solid "+RED,borderRadius:"0 7px 7px 0",padding:"8px 12px",marginBottom:2}}>
-                  <div style={{fontFamily:"monospace",fontSize:9,color:"#e87a7a",letterSpacing:"1px",marginBottom:2,display:"flex",alignItems:"center",gap:5}}>
-                    <span style={{width:4,height:4,borderRadius:"50%",background:"#e87a7a",display:"inline-block"}}></span>相手の言葉
-                  </div>
-                  <div style={{fontSize:13,color:"#ff9999",lineHeight:1.8}}>「{headline}」</div>
-                </div>
-                {lines.slice(1).map(function(line,j){
-                  var t=line.trim();if(!t)return null;
-                  if(/^1[\.．]/.test(t)) return(
-                    <div key={j} style={{borderRadius:7,overflow:"hidden"}}>
-                      <div style={{background:"#1e3050",padding:"3px 10px",fontSize:9,fontWeight:800,color:"#7aaed4",display:"inline-block",borderRadius:"5px 5px 0 0"}}>① 共感</div>
-                      <div style={{background:"rgba(30,48,80,0.5)",border:"1px solid rgba(74,120,200,0.18)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#a8bdd4",lineHeight:1.8}}>{t.replace(/^1[\.．]\s*/,"")}</div>
-                    </div>
-                  );
-                  if(/^2[\.．]/.test(t)) return(
-                    <div key={j} style={{borderRadius:7,overflow:"hidden"}}>
-                      <div style={{background:"#3a2800",padding:"3px 10px",fontSize:9,fontWeight:800,color:GOLD,display:"inline-block",borderRadius:"5px 5px 0 0"}}>② 転換</div>
-                      <div style={{background:"rgba(58,40,0,0.5)",border:"1px solid rgba(245,166,35,0.18)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#d4a84b",lineHeight:1.8}}>{t.replace(/^2[\.．]\s*/,"")}</div>
-                    </div>
-                  );
-                  if(/^3[\.．]/.test(t)) return(
-                    <div key={j} style={{borderRadius:7,overflow:"hidden"}}>
-                      <div style={{background:RED_DARK,padding:"3px 10px",fontSize:9,fontWeight:800,color:WHITE,display:"inline-block",borderRadius:"5px 5px 0 0"}}>③ クロージング</div>
-                      <div style={{background:"rgba(181,0,23,0.15)",border:"1px solid rgba(232,0,29,0.22)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#ff9999",lineHeight:1.8}}>{t.replace(/^3[\.．]\s*/,"")}</div>
-                    </div>
-                  );
-                  return renderLine(line,j,RED);
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
+var[open,setOpen]=useState({});
+if(!content) return <div style={{color:"#666",fontSize:13,padding:20,textAlign:"center"}}>データがありません</div>;
+var blocks=content.split(/\n(?=❌)/).filter(function(b){return b.trim();});
+return(
+<div style={{display:"flex",flexDirection:"column",gap:10}}>
+{blocks.map(function(block,i){
+var lines=block.split("\n").filter(function(l){return l.trim();});
+var headline=lines[0].replace(/^❌\s*/,"").replace(/^「|」$/g,"").trim();
+var isOpen=open[i]!==false;
+return(
+<div key={i} style={{borderRadius:12,overflow:"hidden",border:"1px solid rgba(232,0,29,0.28)"}}>
+<button onClick={function(){setOpen(function(o){var n=Object.assign({},o);n[i]=!isOpen;return n;});}}
+style={{width:"100%",background:"linear-gradient(135deg,"+BG+","+SURFACE+")",borderTop:"3px solid "+RED,
+padding:"12px 16px",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
+<div style={{width:28,height:28,borderRadius:6,background:"rgba(232,0,29,0.12)",border:"1px solid rgba(232,0,29,0.3)",
+display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>❌</div>
+<span style={{fontWeight:800,fontSize:13,color:WHITE,flex:1,textAlign:"left"}}>「{headline}」</span>
+<span style={{color:RED,fontSize:11,opacity:0.7}}>{isOpen?"▲":"▼"}</span>
+</button>
+{isOpen&&(
+<div style={{background:SURFACE,padding:"12px 14px",display:"flex",flexDirection:"column",gap:7}}>
+<div style={{background:"rgba(232,0,29,0.06)",borderLeft:"3px solid "+RED,borderRadius:"0 7px 7px 0",padding:"8px 12px",marginBottom:2}}>
+<div style={{fontFamily:"monospace",fontSize:9,color:"#e87a7a",letterSpacing:"1px",marginBottom:2,display:"flex",alignItems:"center",gap:5}}>
+<span style={{width:4,height:4,borderRadius:"50%",background:"#e87a7a",display:"inline-block"}}></span>相手の言葉
+</div>
+<div style={{fontSize:13,color:"#ff9999",lineHeight:1.8}}>「{headline}」</div>
+</div>
+{lines.slice(1).map(function(line,j){
+var t=line.trim();if(!t)return null;
+if(/^1[.．]/.test(t)) return(
+<div key={j} style={{borderRadius:7,overflow:"hidden"}}>
+<div style={{background:"#1e3050",padding:"3px 10px",fontSize:9,fontWeight:800,color:"#7aaed4",display:"inline-block",borderRadius:"5px 5px 0 0"}}>① 共感</div>
+<div style={{background:"rgba(30,48,80,0.5)",border:"1px solid rgba(74,120,200,0.18)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#a8bdd4",lineHeight:1.8}}>{t.replace(/^1[.．]\s*/,"")}</div>
+</div>
+);
+if(/^2[.．]/.test(t)) return(
+<div key={j} style={{borderRadius:7,overflow:"hidden"}}>
+<div style={{background:"#3a2800",padding:"3px 10px",fontSize:9,fontWeight:800,color:GOLD,display:"inline-block",borderRadius:"5px 5px 0 0"}}>② 転換</div>
+<div style={{background:"rgba(58,40,0,0.5)",border:"1px solid rgba(245,166,35,0.18)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#d4a84b",lineHeight:1.8}}>{t.replace(/^2[.．]\s*/,"")}</div>
+</div>
+);
+if(/^3[.．]/.test(t)) return(
+<div key={j} style={{borderRadius:7,overflow:"hidden"}}>
+<div style={{background:RED_DARK,padding:"3px 10px",fontSize:9,fontWeight:800,color:WHITE,display:"inline-block",borderRadius:"5px 5px 0 0"}}>③ クロージング</div>
+<div style={{background:"rgba(181,0,23,0.15)",border:"1px solid rgba(232,0,29,0.22)",borderRadius:"0 5px 5px 5px",padding:"8px 12px",fontSize:13,color:"#ff9999",lineHeight:1.8}}>{t.replace(/^3[.．]\s*/,"")}</div>
+</div>
+);
+return renderLine(line,j,RED);
+})}
+</div>
+)}
+</div>
+);
+})}
+</div>
+);
 }
 // ===== FAQ VIEWER =====
 function FaqViewer({content}){
@@ -663,11 +655,11 @@ var[genProgress,setGenProgress]=useState({script:0,objection:0,faq:0});
 var[genStatus,setGenStatus]=useState({script:"waiting",objection:"waiting",faq:"waiting"});
 var[currentMsg,setCurrentMsg]=useState(0);
 var messages=[
-"The Model型の戦略フレームワークを分析中...",
+"The Model型のIS戦略フレームワークを分析中...",
 "受付突破の最適パターンを設計中...",
 "担当者トークのHOOK→PAIN→VALUEフローを構築中...",
 "切り返しトークを最適化中...",
-"よくある質問への完璧な回答を準備中...",
+"よくある質問を生成中...",
 "最終調整とブラッシュアップ中..."
 ];
 useEffect(function(){
@@ -677,36 +669,35 @@ return unsub;
 },[]);
 // 管理画面からの復元データをチェック
 useEffect(function(){
-  try {
-    var restoreDataStr = localStorage.getItem('canvi_restore_data');
-    if(!restoreDataStr) return;
-    
-    var restoreData = JSON.parse(restoreDataStr);
-    console.log("📥 Restoring data from admin:", restoreData);
-    
-    // フォームに復元
-    setForm(function(prevForm){
-      return Object.assign({}, prevForm, restoreData);
-    });
-    
-    // 結果画面へジャンプ
-    if(restoreData.jumpToResult && restoreData.output){
-      console.log("🎯 Jumping to result page");
-      setTimeout(function(){
-        setStep(6);
-        setOutput(restoreData.output);
-        setSaved(true);
-        alert("✅ 過去の生成結果を復元しました！\n\n内容を確認して、必要に応じてブラッシュアップできます。");
-      }, 100);
-    }
-    
-    // 復元データを削除
-    localStorage.removeItem('canvi_restore_data');
-    
-  } catch(e) {
-    console.error("❌ Failed to restore data:", e);
-    localStorage.removeItem('canvi_restore_data');
+try {
+var restoreDataStr = localStorage.getItem('canvi_restore_data');
+if(!restoreDataStr) return;
+  var restoreData = JSON.parse(restoreDataStr);
+  console.log("📥 Restoring data from admin:", restoreData);
+  
+  // フォームに復元
+  setForm(function(prevForm){
+    return Object.assign({}, prevForm, restoreData);
+  });
+  
+  // 結果画面へジャンプ
+  if(restoreData.jumpToResult && restoreData.output){
+    console.log("🎯 Jumping to result page");
+    setTimeout(function(){
+      setStep(6);
+      setOutput(restoreData.output);
+      setSaved(true);
+      alert("✅ 過去の生成結果を復元しました！\n\n内容を確認して、必要に応じてブラッシュアップできます。");
+    }, 100);
   }
+  
+  // 復元データを削除
+  localStorage.removeItem('canvi_restore_data');
+  
+} catch(e) {
+  console.error("❌ Failed to restore data:", e);
+  localStorage.removeItem('canvi_restore_data');
+}
 }, []);
 if(user===undefined) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
 if(page==="admin"&&!user) return <AuthPage/>;
@@ -763,7 +754,6 @@ setSaved(false);
 setGenProgress({script:0,objection:0,faq:0});
 setGenStatus({script:"waiting",objection:"waiting",faq:"waiting"});
 setCurrentMsg(0);
-// Message rotation
 var msgInterval=setInterval(function(){
   setCurrentMsg(function(m){return (m+1)%messages.length;});
 },5000);
@@ -778,8 +768,7 @@ function startProgress(type, estimatedSeconds){
     return next;
   });
   
-  // 推定時間に基づいた増分計算（95%まで）
-  var totalIncrements = estimatedSeconds / 0.4; // 400msごと
+  var totalIncrements = estimatedSeconds / 0.4;
   var baseIncrement = 95 / totalIncrements;
   
   progressTimers[type]=setInterval(function(){
@@ -807,10 +796,9 @@ function completeProgress(type){
   });
 }
 
-// Start all sections with slight delay
-setTimeout(function(){ startProgress('script', 25); }, 200);
-setTimeout(function(){ startProgress('objection', 20); }, 500);
-setTimeout(function(){ startProgress('faq', 15); }, 800);
+setTimeout(function(){ startProgress('script', 70); }, 200);
+setTimeout(function(){ startProgress('objection', 40); }, 500);
+setTimeout(function(){ startProgress('faq', 20); }, 800);
 
 var calls=["script","objection","faq"].map(function(type){
   return fetch("/api/generate",{
@@ -856,7 +844,6 @@ Promise.all(calls).then(function(){
   setCurrentId(ver.id);
   setOutput(parsed);
   
-  // Delay to show completion animation
   setTimeout(function(){setLoading(false);},1500);
 }).catch(function(err){
   console.error("Promise.all error",err);
@@ -886,10 +873,43 @@ setSaved(false);setRegenLoading(false);
 }
 function saveResult(){
 if(!output||!user)return;
-addDoc(collection(db,"generations"),{uid:user.uid,email:user.email,companyName:form.companyName,serviceName:form.serviceName,callPattern:form.callPattern,output:output,createdAt:serverTimestamp()})
+// 入力履歴を含めて保存
+var inputHistory = {
+  companyName: form.companyName,
+  serviceName: form.serviceName,
+  serviceOverview: form.serviceOverview,
+  serviceUrl: form.serviceUrl,
+  talkScript: form.talkScript,
+  voiceNote: form.voiceNote,
+  callPattern: form.callPattern,
+  industries: form.industries,
+  employeeRange: form.employeeRange,
+  departments: form.departments,
+  area: form.area,
+  contactRole: form.contactRole,
+  goal: form.goal,
+  appealPoints: form.appealPoints,
+  differentiation: form.differentiation,
+  competitors: form.competitors,
+  rcptObjections: form.rcptObjections,
+  contactObjections: form.contactObjections,
+  situationNotes: form.situationNotes
+};
+
+addDoc(collection(db,"generations"),{
+  uid:user.uid,
+  email:user.email,
+  companyName:form.companyName,
+  serviceName:form.serviceName,
+  callPattern:form.callPattern,
+  output:output,
+  inputHistory:inputHistory,  // 入力履歴を保存
+  memo:"",  // メモ欄（後で編集可能）
+  createdAt:serverTimestamp()
+})
 .then(function(){setSaved(true);}).catch(function(err){
-console.error("Save error:",err);
-alert("保存に失敗しました: "+err.message);
+  console.error("Save error:",err);
+  alert("保存に失敗しました: "+err.message);
 });
 }
 function resetToTop(){
@@ -909,7 +929,7 @@ return(
 <div style={{display:"flex",alignItems:"center",gap:12}}>
 {user?<>
 <span style={{color:"#aaa",fontSize:11}}>{user.email}</span>
-<a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:RED,color:WHITE,fontSize:11,fontWeight:700,textDecoration:"none"}}>📊 管理画面</a>
+<a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:RED,color:WHITE,fontSize:11,fontWeight:700,textDecoration:"none"}}>管理画面</a>
 <button onClick={function(){signOut(auth);}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #444",background:"transparent",color:"#ccc",fontSize:11,fontWeight:700,cursor:"pointer"}}>ログアウト</button>
 </>:<a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:"transparent",border:"1px solid #444",color:"#ccc",fontSize:11,fontWeight:700,textDecoration:"none"}}>管理画面</a>}
 <div style={{color:"#555",fontSize:11,fontWeight:600}}>by 株式会社Canvi</div>
@@ -918,11 +938,11 @@ return(
   <div style={{background:"linear-gradient(135deg,"+DARK+" 0%,#1a0005 50%,"+DARK+" 100%)",padding:"24px 40px",borderBottom:"3px solid "+RED}}>
     <div style={{maxWidth:860,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
       <div>
-        <div style={{fontSize:11,fontWeight:700,color:RED,letterSpacing:"0.15em",marginBottom:4}}>🔥 AI POWERED TELEAPO TOOL</div>
-        <div style={{fontSize:22,fontWeight:900,color:WHITE,lineHeight:1.3}}>最強のトークスクリプトを、<span style={{color:GOLD}}>AIが瞬時に設計する。</span></div>
+        <div style={{fontSize:11,fontWeight:700,color:RED,letterSpacing:"0.15em",marginBottom:4}}>AI POWERED TELEAPO TOOL</div>
+        <div style={{fontSize:22,fontWeight:900,color:WHITE,lineHeight:1.3}}>テレアポのトークスクリプトを、<span style={{color:GOLD}}>AIが瞬時に生成する。</span></div>
       </div>
       <div style={{display:"flex",gap:12,color:"#555",fontSize:11,fontWeight:600}}>
-        <span>STEP 1-6で簡単入力</span><span style={{color:RED}}>→</span><span>AIが自動生成</span><span style={{color:RED}}>→</span><span>即使えるスクリプト</span>
+        <span>STEP 1-5で簡単入力</span><span style={{color:RED}}>→</span><span>AIが自動生成</span><span style={{color:RED}}>→</span><span>トークスクリプト完成</span>
       </div>
     </div>
   </div>
@@ -998,7 +1018,7 @@ return(
           <OutputViewer output={output} form={form} onSave={saveResult} saved={saved} onRegenerate={regenerateSection} regenLoading={regenLoading}/>
           <div style={{marginTop:14,textAlign:"center"}}>
             <button onClick={resetToTop} style={{padding:"11px 28px",borderRadius:10,border:"2px solid "+BORDER,background:WHITE,color:TEXT_MUTED,fontWeight:700,fontSize:13,cursor:"pointer"}}>
-              🔄 全キャンして最初に戻る
+              🔄 削除して最初の画面に戻る
             </button>
           </div>
         </div>
