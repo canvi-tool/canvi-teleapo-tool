@@ -738,17 +738,26 @@ var msgInterval=setInterval(function(){
 var results={script:"",objection:"",faq:""};
 var progressTimers={};
 
-function startProgress(type){
+function startProgress(type, estimatedSeconds){
   setGenStatus(function(prev){return Object.assign({},prev,{[type]:"processing"});});
+  
+  // 推定時間に基づいた進捗速度
+  var increment = (95 / estimatedSeconds) * 0.4; // 400msごとの増分
+  
   progressTimers[type]=setInterval(function(){
     setGenProgress(function(prev){
-      if(prev[type]>=90)return prev;
+      if(prev[type]>=95)return prev;
       var newProg=Object.assign({},prev);
-      newProg[type]=Math.min(prev[type]+Math.random()*12,90);
+      newProg[type]=Math.min(prev[type] + increment + Math.random()*0.5, 95);
       return newProg;
     });
   },400);
 }
+
+// 使用
+startProgress('script', 25);    // 25秒で95%
+startProgress('objection', 20); // 20秒で95%
+startProgress('faq', 15);       // 15秒で95%
 
 function completeProgress(type){
   clearInterval(progressTimers[type]);
