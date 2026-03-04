@@ -739,34 +739,47 @@ var results={script:"",objection:"",faq:""};
 var progressTimers={};
 
 function startProgress(type, estimatedSeconds){
-  setGenStatus(function(prev){return Object.assign({},prev,{[type]:"processing"});});
+  setGenStatus(function(prev){
+    var next=Object.assign({},prev);
+    next[type]="processing";
+    return next;
+  });
   
-  // 推定時間に基づいた進捗速度
-  var increment = (95 / estimatedSeconds) * 0.4; // 400msごとの増分
+  // 推定時間に基づいた増分計算（95%まで）
+  var totalIncrements = estimatedSeconds / 0.4; // 400msごと
+  var baseIncrement = 95 / totalIncrements;
   
   progressTimers[type]=setInterval(function(){
     setGenProgress(function(prev){
       if(prev[type]>=95)return prev;
       var newProg=Object.assign({},prev);
-      newProg[type]=Math.min(prev[type] + increment + Math.random()*0.5, 95);
+      var randomVariation = Math.random() * 0.5;
+      newProg[type]=Math.min(prev[type] + baseIncrement + randomVariation, 95);
       return newProg;
     });
   },400);
 }
 
-// 使用
-startProgress('script', 25);    // 25秒で95%
-startProgress('objection', 20); // 20秒で95%
-startProgress('faq', 15);       // 15秒で95%
-
 function completeProgress(type){
   clearInterval(progressTimers[type]);
-  setGenProgress(function(prev){return Object.assign({},prev,{[type]:100});});
-  setGenStatus(function(prev){return Object.assign({},prev,{[type]:"done"});});
+  setGenProgress(function(prev){
+    var next=Object.assign({},prev);
+    next[type]=100;
+    return next;
+  });
+  setGenStatus(function(prev){
+    var next=Object.assign({},prev);
+    next[type]="done";
+    return next;
+  });
 }
 
+// Start all sections with slight delay
+setTimeout(function(){ startProgress('script', 25); }, 200);
+setTimeout(function(){ startProgress('objection', 20); }, 500);
+setTimeout(function(){ startProgress('faq', 15); }, 800);
+
 var calls=["script","objection","faq"].map(function(type){
-  startProgress(type);
   return fetch("/api/generate",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -945,7 +958,7 @@ return(
           <OutputViewer output={output} form={form} onSave={saveResult} saved={saved} onRegenerate={regenerateSection} regenLoading={regenLoading}/>
           <div style={{marginTop:14,textAlign:"center"}}>
             <button onClick={resetToTop} style={{padding:"11px 28px",borderRadius:10,border:"2px solid "+BORDER,background:WHITE,color:TEXT_MUTED,fontWeight:700,fontSize:13,cursor:"pointer"}}>
-              🔄 キャンセルしてTOP画面に戻る
+              🔄 全キャンして最初に戻る
             </button>
           </div>
         </div>
