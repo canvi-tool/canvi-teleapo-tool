@@ -1033,17 +1033,17 @@ export default function CanviTool(){
     {user?<>
       <span style={{color:WHITE,fontSize:11}}>{user.email}</span>
       <a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:RED,color:WHITE,fontSize:11,fontWeight:700,textDecoration:"none"}}>📊 管理画面</a>
-      {(function(){
-        try {
-          var saved = localStorage.getItem('canvi_super_admins');
-          var adminList = saved ? JSON.parse(saved) : ["yuji.okabayashi@canvi.co.jp","admin@canvi.co.jp"];
-          return adminList.includes(user.email);
-        } catch(e) {
-          return ["yuji.okabayashi@canvi.co.jp","admin@canvi.co.jp"].includes(user.email);
-        }
-      })()&&(
-        <a href="/super-admin" style={{padding:"6px 14px",borderRadius:8,background:GOLD,color:DARK,fontSize:11,fontWeight:700,textDecoration:"none",boxShadow:"0 2px 8px rgba(245,166,35,0.3)"}}>👑 Super Admin</a>
-      )}
+    {(function(){
+  try {
+    var saved = localStorage.getItem('canvi_super_admins');
+    var adminList = saved ? JSON.parse(saved) : ["yuji.okabayashi@canvi.co.jp","admin@canvi.co.jp"];
+    return adminList.includes(user.email);
+  } catch(e) {
+    return ["yuji.okabayashi@canvi.co.jp","admin@canvi.co.jp"].includes(user.email);
+  }
+})() ? (
+  <a href="/super-admin" style={{padding:"6px 14px",borderRadius:8,background:GOLD,color:DARK,fontSize:11,fontWeight:700,textDecoration:"none",boxShadow:"0 2px 8px rgba(245,166,35,0.3)"}}>👑 Super Admin</a>
+) : null}
       <button onClick={function(){signOut(auth);}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #444",background:"transparent",color:"#ccc",fontSize:11,fontWeight:700,cursor:"pointer"}}>ログアウト</button>
     </>:<a href="/admin" style={{padding:"6px 14px",borderRadius:8,background:"transparent",border:"1px solid #444",color:"#ccc",fontSize:11,fontWeight:700,textDecoration:"none"}}>管理画面</a>}
     <div style={{color:WHITE,fontSize:11,fontWeight:600}}>by 株式会社Canvi</div>
