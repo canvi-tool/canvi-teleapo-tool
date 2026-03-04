@@ -27,11 +27,18 @@ export default function SuperAdminPage(){
   var[searchQuery,setSearchQuery]=useState("");
   var[filterStatus,setFilterStatus]=useState("all");
   var[selectedUser,setSelectedUser]=useState(null);
-  var[superAdminList,setSuperAdminList]=useState(SUPER_ADMINS);
+  var[superAdminList,setSuperAdminList]=useState(function(){
+    try {
+      var saved = localStorage.getItem('canvi_super_admins');
+      return saved ? JSON.parse(saved) : SUPER_ADMINS;
+    } catch(e) {
+      return SUPER_ADMINS;
+    }
+  });
   var[newAdminEmail,setNewAdminEmail]=useState("");
 
   // 権限チェック
-  var isSuperAdmin = auth.currentUser && SUPER_ADMINS.includes(auth.currentUser.email);
+  var isSuperAdmin = auth.currentUser && superAdminList.includes(auth.currentUser.email);
 
   useEffect(function(){
     if(!isSuperAdmin) return;
@@ -316,7 +323,7 @@ export default function SuperAdminPage(){
           <div>
             <div style={{background:WHITE,borderRadius:12,padding:"32px 36px",border:"1px solid #e8e8e8",marginBottom:24}}>
               <div style={{fontSize:20,fontWeight:900,color:DARK,marginBottom:8}}>👑 スーパー管理者の管理</div>
-              <div style={{fontSize:13,color:"#666",marginBottom:24}}>スーパー管理者を追加・削除できます（注意：この変更はローカルのみで、サーバー側の設定が必要です）</div>
+              <div style={{fontSize:13,color:"#666",marginBottom:24}}>スーパー管理者を追加・削除できます（変更はブラウザに保存されます）</div>
               
               <div style={{marginBottom:24}}>
                 <div style={{fontSize:14,fontWeight:800,color:DARK,marginBottom:12}}>現在のスーパー管理者</div>
@@ -335,7 +342,9 @@ export default function SuperAdminPage(){
                         {!isCurrent&&(
                           <button onClick={function(){
                             if(confirm(email + " をスーパー管理者から削除しますか？")){
-                              setSuperAdminList(superAdminList.filter(function(e){return e!==email;}));
+                              var newList = superAdminList.filter(function(e){return e!==email;});
+                              setSuperAdminList(newList);
+                              localStorage.setItem('canvi_super_admins', JSON.stringify(newList));
                             }
                           }} style={{padding:"6px 14px",borderRadius:6,background:"#fee",border:"1px solid #fcc",color:"#c00",fontSize:12,fontWeight:700,cursor:"pointer"}}>
                             削除
@@ -367,7 +376,9 @@ export default function SuperAdminPage(){
                         alert("既に登録されています");
                         return;
                       }
-                      setSuperAdminList([...superAdminList, newAdminEmail]);
+                      var newList = [...superAdminList, newAdminEmail];
+                      setSuperAdminList(newList);
+                      localStorage.setItem('canvi_super_admins', JSON.stringify(newList));
                       setNewAdminEmail("");
                       alert("✅ " + newAdminEmail + " をスーパー管理者に追加しました");
                     }}
@@ -382,10 +393,22 @@ export default function SuperAdminPage(){
             <div style={{background:"#fff8ed",border:"1px solid #f5a62344",borderRadius:12,padding:"16px 20px"}}>
               <div style={{fontSize:13,fontWeight:700,color:"#92400e",marginBottom:8}}>⚠️ 重要な注意事項</div>
               <div style={{fontSize:12,color:"#92400e",lineHeight:1.8}}>
-                • この画面での変更はブラウザのローカルのみに反映されます<br/>
+                • この画面での変更はブラウザのlocalStorageに保存されます<br/>
                 • 実際にスーパー管理者権限を付与するには、コード内の SUPER_ADMINS 配列を更新してデプロイする必要があります<br/>
                 • SuperAdminPage.jsx の 10-13行目を編集してください
               </div>
+              <button 
+                onClick={function(){
+                  if(confirm("デフォルトの管理者リストに戻しますか？")){
+                    setSuperAdminList(SUPER_ADMINS);
+                    localStorage.removeItem('canvi_super_admins');
+                    alert("✅ デフォルトにリセットしました");
+                  }
+                }}
+                style={{marginTop:12,padding:"8px 16px",borderRadius:6,background:WHITE,border:"1px solid #f5a62344",color:"#92400e",fontSize:12,fontWeight:700,cursor:"pointer"}}
+              >
+                🔄 デフォルトにリセット
+              </button>
             </div>
           </div>
         )}
