@@ -694,7 +694,11 @@ export default function CanviTool(){
   var[scriptFileName,setScriptFileName]=useState("");
   var[user,setUser]=useState(undefined);
   var[userProfile,setUserProfile]=useState(undefined);
-  var[page,setPage]=useState("landing");
+  var[page,setPage]=useState(
+  window.location.pathname === "/admin" ? "admin" :
+  window.location.pathname === "/super-admin" ? "super-admin" :
+  "landing"
+);
   var[form,setForm]=useState({companyName:"",serviceName:"",serviceOverview:"",serviceUrl:"",talkScript:"",voiceNote:"",callPattern:"",industries:[],employeeRange:[],departments:[],area:"",contactRole:"",goal:"",appealPoints:"",differentiation:"",competitors:"",rcptObjections:"",contactObjections:"",situationNotes:""});
   
   // Progress states
