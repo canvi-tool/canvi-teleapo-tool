@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "./firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
 import AuthPage from "./AuthPage";
 import AdminPage from "./AdminPage";
 import LandingPage from "./LandingPage";
+import OnboardingPage from "./OnboardingPage"; 
 
 const CALL_PATTERNS = [
   { id: "new_list", label: "新規リスト向け", icon: "📋", desc: "未接触の新規ターゲットへのコールド架電" },
@@ -689,6 +690,7 @@ export default function CanviTool(){
   var[scriptUploaded,setScriptUploaded]=useState(false);
   var[scriptFileName,setScriptFileName]=useState("");
   var[user,setUser]=useState(undefined);
+  var[userProfile,setUserProfile]=useState(undefined); 
   var[page,setPage]=useState("landing");
   var[form,setForm]=useState({companyName:"",serviceName:"",serviceOverview:"",serviceUrl:"",talkScript:"",voiceNote:"",callPattern:"",industries:[],employeeRange:[],departments:[],area:"",contactRole:"",goal:"",appealPoints:"",differentiation:"",competitors:"",rcptObjections:"",contactObjections:"",situationNotes:""});
   
