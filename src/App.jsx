@@ -710,7 +710,7 @@ export default function CanviTool(){
     "最終調整とブラッシュアップ中..."
   ];
 
- useEffect(function(){
+useEffect(function(){
   var unsub=onAuthStateChanged(auth,function(u){
     console.log("🔍 Auth state changed:", u ? u.email : "not logged in");
     setUser(u||null);
@@ -741,45 +741,41 @@ export default function CanviTool(){
   if(window.location.pathname==="/super-admin")setPage("super-admin");
   return unsub;
 },[]);
-    
-    if(window.location.pathname==="/admin")setPage("admin");
-    return unsub;
-  },[]);
 
-  // 管理画面からの復元データをチェック
-  useEffect(function(){
-    try {
-      var restoreDataStr = localStorage.getItem('canvi_restore_data');
-      if(!restoreDataStr) return;
-      
-      var restoreData = JSON.parse(restoreDataStr);
-      console.log("📥 Restoring data from admin:", restoreData);
-      
-      // フォームに復元
-      setForm(function(prevForm){
-        return Object.assign({}, prevForm, restoreData);
-      });
-      
-      // 結果画面へジャンプ
-      if(restoreData.jumpToResult && restoreData.output){
-        console.log("🎯 Jumping to result page");
-        setPage("tool");
-        setTimeout(function(){
-          setStep(6);
-          setOutput(restoreData.output);
-          setSaved(true);
-          alert("✅ 過去の生成結果を復元しました！\n\n内容を確認して、必要に応じてブラッシュアップできます。");
-        }, 100);
-      }
-      
-      // 復元データを削除
-      localStorage.removeItem('canvi_restore_data');
-      
-    } catch(e) {
-      console.error("❌ Failed to restore data:", e);
-      localStorage.removeItem('canvi_restore_data');
+// 管理画面からの復元データをチェック
+useEffect(function(){
+  try {
+    var restoreDataStr = localStorage.getItem('canvi_restore_data');
+    if(!restoreDataStr) return;
+    
+    var restoreData = JSON.parse(restoreDataStr);
+    console.log("📥 Restoring data from admin:", restoreData);
+    
+    // フォームに復元
+    setForm(function(prevForm){
+      return Object.assign({}, prevForm, restoreData);
+    });
+    
+    // 結果画面へジャンプ
+    if(restoreData.jumpToResult && restoreData.output){
+      console.log("🎯 Jumping to result page");
+      setPage("tool");
+      setTimeout(function(){
+        setStep(6);
+        setOutput(restoreData.output);
+        setSaved(true);
+        alert("✅ 過去の生成結果を復元しました！\n\n内容を確認して、必要に応じてブラッシュアップできます。");
+      }, 100);
     }
-  }, []);
+    
+    // 復元データを削除
+    localStorage.removeItem('canvi_restore_data');
+    
+  } catch(e) {
+    console.error("❌ Failed to restore data:", e);
+    localStorage.removeItem('canvi_restore_data');
+  }
+}, []);
 
   if(user===undefined || (user && userProfile===undefined)) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:TEXT_MUTED}}>読み込み中...</div>;
 
