@@ -716,6 +716,10 @@ export default function CanviTool(){
   ];
 
 useEffect(function(){
+  // URLチェックを最優先で実行
+  if(window.location.pathname==="/admin") setPage("admin");
+  if(window.location.pathname==="/super-admin") setPage("super-admin");
+  
   var unsub=onAuthStateChanged(auth,function(u){
     console.log("🔍 Auth state changed:", u ? u.email : "not logged in");
     setUser(u||null);
@@ -741,6 +745,9 @@ useEffect(function(){
       setUserProfile(null);
     }
   });
+  
+  return unsub;
+},[]);
   
   if(window.location.pathname==="/admin")setPage("admin");
   if(window.location.pathname==="/super-admin")setPage("super-admin");
