@@ -59,7 +59,7 @@ window.location.href = '/';
 }
 return(
 <div onClick={onClose} style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:20,overflowY:"auto"}}>
-<div onClick={function(e){e.stopPropagation();}} style={{background:WHITE,borderRadius:16,maxWidth:1000,width:"100%",maxHeight:"95vh",display:"flex",flexDirection:"column",boxShadow:"0 20px 60px rgba(0,0,0,0.3)",margin:"auto"}}>
+<div onClick={function(e){e.stopPropagation();}} style={{background:WHITE,borderRadius:16,maxWidth:1000,width:"95%",maxHeight:"95vh",display:"flex",flexDirection:"column",boxShadow:"0 20px 60px rgba(0,0,0,0.3)",margin:"auto"}}>
 {/* Header */}
 <div style={{background:DARK,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
 <div>
